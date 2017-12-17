@@ -1,0 +1,30 @@
+{
+  "name": "rpcapi-websocket-client",
+  "version": "1.0.0",
+  "description": "A client for connecting to an RPCAPI server from a webbrowser, using the websocket protocol",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "tsc",
+    "test": "ava **/src/**/*.test.js **/src/**/*.itest.js",
+    "precoverage": "tsc",
+    "coverage": "nyc ava **/src/**/*.test.js **/src/**/*.itest.js"
+  },
+  "keywords": [
+    "rpc",
+    "api",
+    "websocket",
+    "communication",
+    "client"
+  ],
+  "devDependencies": {
+    "@types/socket.io-client": "^1.4.32",
+    "ava": "^0.24.0",
+    "nyc": "^11.3.0",
+    "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "socket.io-client": "^2.0.4"
+  },
+  "author": "Jye Lewis",
+  "license": "ISC"
+}
