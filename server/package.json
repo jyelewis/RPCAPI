@@ -2,6 +2,10 @@
   "name": "rpcapi",
   "version": "1.0.0",
   "description": "Provides a struture for hosting RPC style APIs, supports both http and websocket access out of the box",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jyelewis/RPCAPI"
+  },
   "main": "index.js",
   "scripts": {
     "pretest": "tsc",

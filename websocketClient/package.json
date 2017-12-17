@@ -2,6 +2,10 @@
   "name": "rpcapi-websocket-client",
   "version": "1.0.0",
   "description": "A client for connecting to an RPCAPI server from a webbrowser, using the websocket protocol",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jyelewis/RPCAPI"
+  },
   "main": "index.js",
   "scripts": {
     "pretest": "tsc",
