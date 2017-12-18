@@ -4,7 +4,7 @@ import {Express} from "express";
 import {InvalidTypeError, NotFoundError} from "./customErrors";
 import {convertParamType} from "./convertParamType";
 
-interface IWebAPIAccessMethodConfig {
+export interface IWebAPIAccessMethodConfig {
     prefix?: string
 }
 
