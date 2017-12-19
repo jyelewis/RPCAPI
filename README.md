@@ -13,7 +13,28 @@ Actions can then be called remotely, either using a websocket and the client SDK
 Designed to solve the problem of constantly building project structures around socket.io to manage many endpoints
 as well as providing a much nicer way to communicate with the server (RPC instead of messaging)
 
-#### Benefits of RPC over socket messaging
+## Contents
+- [Benefits of RPC over socket messaging](#benefits-of-rpc-over-socket-messaging)
+- [Getting started](#getting-started)
+  - [Installation](#installation)
+  - [Viewing the examples](#viewing-the-examples)
+- [Server side](#server-side) 
+  - [Starting a server](#starting-a-server)
+  - [Defining endpoints](#defining-endpoints)
+    - [Complete endpoint example](#complete-endpoint-example)
+    - [Registering an endpoint](#registering-an-endpoint)
+    - [Lifecycle hooks](#lifecycle-hooks)
+    - [Defining an action](#defining-an-action)
+    - [Action parameters](#action-parameters)
+    - [Pushing to the client](#pushing-to-the-client)
+- [Client side](#client-side)
+  - [Accessing actions via the web api](#accessing-actions-via-the-web-api)
+  - [Using the websocket client](#using-the-websocket-client)
+- [Pushing to the client (implementation)](#pushing-to-the-client-implementation)
+  - [Server code](#pushing-to-the-client---server-code)
+  - [Client code](#pushing-to-the-client---client-code)
+    
+## Benefits of RPC over socket messaging
 Traditional socket.io code looks like this
 ```javascript
 socket.emit('userService.authenticateUser', email, password);
@@ -32,7 +53,7 @@ If we want to handle connection dropouts, timeouts, invalid arguments, unexpecte
 
 Out of the box, RPC API provides a much neater syntax
 ```javascript
-const isAuthenticated = await userService.call('authenticateUser', email, password);
+const isAuthenticated = await userService.callAction('authenticateUser', { email, password });
 
 if (isAuthenticated) {
     console.log('Yay we are authenticated');
@@ -42,17 +63,18 @@ if (isAuthenticated) {
 ```
 Timeouts, invalid arguments and server errors are all automatically handled.
 
-
 ## Getting started
+
+### Installation
 This application is most useful with both RPCAPI on the server and RPCAPI-websocket-client on the client.
 This allows a client application to easily call endpoint actions.
 
 To install:
-```npm install rpcapi```
+```npm install --save rpcapi```
 or using yarn
 ```yarn add rpcapi```
 
-#### Viewing the examples
+### Viewing the examples
 The best way to get started is to take a look at the examples directory, which includes a basic project with a few different endpoints
 designed to show how to create and register endpoints and actions.
 
@@ -66,6 +88,9 @@ To view an example endpoint via the webapi navigate to `http://localhost:8081/ap
 To start the client, open a new terminal window and navigate to `examples/websocketClient` and run npm start
 The client will be served on port 8081 and can be viewed in a web browser.
  
+ 
+
+## Server side
 
 ### Starting a server
 The webapi access method is designed to be run with an express webserver,
@@ -101,13 +126,13 @@ server.listen(8081, () => {
 });
 ``` 
 
-### Defining endpoints on the server
+### Defining endpoints
 Endpoints are defined as classes, extending rpcapi.APIEndpoint
 
 Endpoints contain actions, which can be remotely called.
 Actions can define, which are passed to them when they are called
 
-#### Complete example
+#### Complete endpoint example
 ```javascript
 class ExampleEndpoint extends rpcapi.APIEndpoint {
     constructor() {
@@ -131,6 +156,13 @@ class ExampleEndpoint extends rpcapi.APIEndpoint {
     }
 }
 
+api.registerEndpoint('example', ExampleEndpoint);
+```
+
+#### Registering an endpoint
+Endpoint classes must be registered to the api.
+You can register many endpoints, but they must all have different names
+```javascript
 api.registerEndpoint('example', ExampleEndpoint);
 ```
 
@@ -219,16 +251,10 @@ There are 2 important functions to use when pushing data to the client
 `this.canEmit()` - Boolean, returns true if the current connection method supports pushing, this.emit() will crash if called when this is false
 `this.emit(eventName, arg1, arg2, etc...)` - Send an event to the client 
 
-See implementation details below at [Pushing to the client (implementation)](#Pushing to the client implementation)
+See implementation details below at [Pushing to the client (implementation)](#pushing-to-the-client-implementation)
 
 
-#### Registering an endpoint
-Endpoint classes must be registered to the api.
-You can register many endpoints, but they must all have different names
-```javascript
-api.registerEndpoint('example', ExampleEndpoint);
-```
-
+## Client side
 ### Accessing actions via the web api
 By default the `WebAPIAccessMethod` binds to the path `/api`
 This can be changed by passing in the `prefix` configuration parameter.
@@ -328,14 +354,14 @@ console.log(await adder2Endpoint.callAction('getValue')); //2
  
 ```
 
-### Pushing to the client implementation
+## Pushing to the client (implementation)
 One of the biggest advantages of sockets is the ability to push data from the server to the client without the client explicitly asking for data.
 This is possible using the websocket client.
 
 Pushing data to the client requires a websocket conenction, it will not work over a webapi connection.
 To ensure the current connection method supports pushing/emitting, call `this.canEmit()`
 
-##### Server code
+### Pushing to the client - server code
 ```javascript
 class PushToClientEndpoint extends rpcapi.APIEndpoint {
     //Cleanup when the client disconnects
@@ -358,7 +384,7 @@ class PushToClientEndpoint extends rpcapi.APIEndpoint {
 }
 ```
 
-##### Client code
+### Pushing to the client - client code
 ```javascript
 const pushToClientEndpoint = api.connectToEndpoint('pushToClient');
 
