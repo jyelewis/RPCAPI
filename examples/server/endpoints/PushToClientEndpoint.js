@@ -24,7 +24,7 @@ class PushToClientEndpoint extends rpcapi.APIEndpoint {
         }
 
         this.pushTimer = setInterval(() => {
-            this.emit('time', Date.time()); //Will push to the client, the client can listen via apiEndpoint.on('time', cb);
+            this.emit('time', Date.now()); //Will push to the client, the client can listen via apiEndpoint.on('time', cb);
         }, 1000);
 
         return { result: 'Pushing the current time every second (event: time)' };

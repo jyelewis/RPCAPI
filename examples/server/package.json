@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "dependencies": {
         "express": "^4.16.2",
-        "rpcapi": "^1.0.4",
+        "rpcapi": "latest",
         "socket.io": "^2.0.4"
     },
     "main": "index.js",
