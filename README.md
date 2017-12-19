@@ -104,38 +104,25 @@ The client will be served on port 8081 and can be viewed in a web browser.
 ## Server side
 
 ### Starting a server
-The webapi access method is designed to be run with an express webserver,
-the websocket access method is designed to be run with a socket io instance.
-
-These services need to be configured in order to provide access into your api endpoints.
+The easiest way to start a server is to use the built in `api.listen()` method.
+This will set up a web server and websocket server on the given port and respond to api requests.
 ```javascript
 const rpcapi = require('rpcapi');
-const http = require('http');
-const express = require('express');
-const socketio = require('socket.io');
-
-//Setup express web server
-const app = express();
-const server = new http.Server(app);
-const io = socketio(server);
 
 //Create our API instance
 //This is what will be given to our access methods, we will register all our endpoints against this object
 const api = new rpcapi.API();
 
-//Setup websocket access method
-const socketApi = new rpcapi.WebSocketAccessMethod(api);
-socketApi.bind(io); //Bind socket access method to socket.io instance
-
-//Setup webapi access method
-const webApi = new rpcapi.WebAPIAccessMethod(api);
-webApi.bind(app); //Bind webapi access method to express web server
+//Register your endpoint classes here
+//api.registerEndpoint('test', TestEndpoint);
 
 //server listen
-server.listen(8081, () => {
+api.listen(8081).then(() => {
     console.log('Example API Server listening on port 8081');
 });
-``` 
+```
+
+If you want to manually manage your server, have a look at the advanced topic [Manage express and socketio manually](#manage-express-and-socketio-manually)
 
 ### Defining endpoints
 Endpoints are defined as classes, extending rpcapi.APIEndpoint
@@ -408,6 +395,48 @@ await pushToClientEndpoint.callAction('startPushing');
 ```
 
 ## Advanced topics
+
+### Manage express and socketio manually
+By default, RPCAPI will register its own express app and socket io server on the port given when you call `api.listen()`
+However, sometimes control is required over these services.
+For example when,
+ - Creating a custom 404 page
+ - Sharing a single port for both RPCAPI and another web service
+ - Sending custom socket messages using a different namespace
+ - Using RPCAPI in an application where express and socketio are already configured 
+
+The webapi access method is designed to be run with an express webserver,
+the websocket access method is designed to be run with a socket io instance.
+
+These services need to be configured in order to provide access into your api endpoints.
+```javascript
+const rpcapi = require('rpcapi');
+const http = require('http');
+const express = require('express');
+const socketio = require('socket.io');
+
+//Setup express web server
+const app = express();
+const server = new http.Server(app);
+const io = socketio(server);
+
+//Create our API instance
+//This is what will be given to our access methods, we will register all our endpoints against this object
+const api = new rpcapi.API();
+
+//Setup websocket access method
+const socketApi = new rpcapi.WebSocketAccessMethod(api);
+socketApi.bind(io); //Bind socket access method to socket.io instance
+
+//Setup webapi access method
+const webApi = new rpcapi.WebAPIAccessMethod(api);
+webApi.bind(app); //Bind webapi access method to express web server
+
+//server listen
+server.listen(8081, () => {
+    console.log('Example API Server listening on port 8081');
+});
+``` 
 
 ### Mocking
 On the client it can be difficult to test modules that directly communicate with the server.
