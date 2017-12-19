@@ -31,6 +31,9 @@ api.registerEndpoint('bad', BadEndpoint); //Throws an error (endpoint: throwErro
 
 api.registerEndpoint('typescriptCalculator', TypescriptCalculatorEndpoint); //Similar to the above calculator, using TS syntax
 
+//Try accessing an endpoint via the webapi
+// http://localhost:8081/api/calculator/add?a=1&b=2
+
 //Setup access methods, you do not need both, you can choose one
 //These access methods define how an api can be accessed
 //if you want to use the websocket client, then the websocket access method must be enabled
