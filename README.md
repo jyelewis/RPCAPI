@@ -34,6 +34,9 @@ as well as providing a much nicer way to communicate with the server (RPC instea
   - [Server code](#pushing-to-the-client---server-code)
   - [Client code](#pushing-to-the-client---client-code)
 - [Advanced topics](#advanced-topics)
+  - [Mocking](#mocking)
+    - [Mocking APIClient example](#mocking-apiclient-example)
+    - [Mocking APIEndpointClient example](#mocking-apiendpointclient-example)
   - [Creating custom access methods](#creating-custom-access-methods)
     
 
@@ -405,6 +408,61 @@ await pushToClientEndpoint.callAction('startPushing');
 ```
 
 ## Advanced topics
+
+### Mocking
+On the client it can be difficult to test modules that directly communicate with the server.
+
+RPCAPI-websocket-client provides ready to go mocking classes for both
+ - APIClient (the single connection object to the server)
+ - APIEndpointClient (An endpoint, created by api.connectToEndpoint())
+ 
+These classes do not establish any connection with the server, they simply simulate a predefined api structure for testing
+ 
+#### Mocking APIClient example
+ - Many endpoints and actions can be mocked (you could mock your entire backend if you wanted to)
+ - There is fake delay of 10ms each call to simulate 'server lag'
+   - This may be changed in a future version, while writing test cases it is not nice to be 'waiting' an arbitrary length of time before making more assertion
+
+```javascript
+const mockAPIClient = new MockAPIClient({
+    endpoints: {
+        testEndpoint: {
+            actions: {
+                testAction: () => {
+                    return { someValue: 123 };
+                }
+            }
+        }
+    }
+});
+
+await mockAPIClient.connect();
+
+const mockEP = await mockAPIClient.connectToEndpoint('testEndpoint');
+const response = await mockEP.callAction('testAction');
+console.log(response); // { someValue: 123 }
+``` 
+
+#### Mocking APIEndpointClient example
+MockAPIEndpointClient is very similar to MockAPIClient, however it only mocks a single endpoint, and does not require 'connecting' (it simulates a single connected endpoint)
+```javascript
+    const mockAPIEndpointClient = new MockAPIEndpointClient({
+        actions: {
+            testAction: () => {
+                return { a: 1 };
+            },
+            otherAction: () => {
+                return { a: 2 };
+            }
+        }
+    });
+    
+    const result1 = await mockAPIEndpointClient.callAction('testAction');
+    console.log(result1); //{ a: 1 }
+    
+    const result2 = await mockAPIEndpointClient.callAction('otherAction');
+    console.log(result2); //{ a: 2 }
+```
 
 ### Creating custom access methods
 Access methods are nothing special, they are just a module that takes in an API instance.
