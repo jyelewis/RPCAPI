@@ -1,6 +1,6 @@
 {
   "name": "rpcapi-websocket-client",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A client for connecting to an RPCAPI server from a webbrowser, using the websocket protocol",
   "repository": {
     "type": "git",
@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "prepublishOnly": "tsc -d",
+    "prepublishOnly": "tsc -d && cp ../README.md README.md",
     "pretest": "tsc",
     "test": "ava **/src/**/*.test.js **/src/**/*.itest.js",
     "precoverage": "tsc",
