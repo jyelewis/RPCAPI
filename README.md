@@ -11,7 +11,7 @@ These actions are simple javascript functions, which take parameters and return 
 Actions can then be called remotely, either using a websocket and the client SDK or via a web api. 
 
 Designed to solve the problem of constantly building project structures around socket.io to manage many endpoints
-as well as providing a much nicer way to communicate with the server (RPC instead of messaging)
+as well as providing a much nicer way to communicate with the server (RPC instead of messaging).
 
 ## Contents
 - [Benefits of RPC over socket messaging](#benefits-of-rpc-over-socket-messaging)
@@ -33,7 +33,10 @@ as well as providing a much nicer way to communicate with the server (RPC instea
 - [Pushing to the client (implementation)](#pushing-to-the-client-implementation)
   - [Server code](#pushing-to-the-client---server-code)
   - [Client code](#pushing-to-the-client---client-code)
+- [Advanced topics](#advanced-topics)
+  - [Creating custom access methods](#creating-custom-access-methods)
     
+
 ## Benefits of RPC over socket messaging
 Traditional socket.io code looks like this
 ```javascript
@@ -70,9 +73,14 @@ This application is most useful with both RPCAPI on the server and RPCAPI-websoc
 This allows a client application to easily call endpoint actions.
 
 To install:
-```npm install --save rpcapi```
+```bash
+npm install --save rpcapi
+```
+
 or using yarn
-```yarn add rpcapi```
+```bash
+yarn add rpcapi
+```
 
 ### Viewing the examples
 The best way to get started is to take a look at the examples directory, which includes a basic project with a few different endpoints
@@ -253,7 +261,6 @@ There are 2 important functions to use when pushing data to the client
 
 See implementation details below at [Pushing to the client (implementation)](#pushing-to-the-client-implementation)
 
-
 ## Client side
 ### Accessing actions via the web api
 By default the `WebAPIAccessMethod` binds to the path `/api`
@@ -396,3 +403,17 @@ pushToClientEndpoint.on('time', (currentTime) => {
 //Call the startPushing action to request the server pushes the time to us every second
 await pushToClientEndpoint.callAction('startPushing');
 ```
+
+## Advanced topics
+
+### Creating custom access methods
+Access methods are nothing special, they are just a module that takes in an API instance.
+They can create new endpoint instances by calling api.getEndpoint(endpointName) to get an APIEndpoint instance
+
+On this instance you can then call:
+ - `actionExists(actionName)` - Boolean, if action exists
+ - `actionParams(actionName)` - Object, keyed list of parameters and their types
+ - `connect()` - Call this when the client is connected to this endpoint (generally immediately after creation). Only call this if the connection is long lived
+ - `disconnect()` - Call when the client disconnects / the endpoint is not required anymore. Only call this if the connection is long lived
+ - `registerEmitHandler(handlerFunc)` - Provide a function that will be called if the endpoint calls this.emit(), once you have provided a function this.canEmit() will return true
+ - `callAction(actionName, args)` - Call an action by name
