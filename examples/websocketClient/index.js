@@ -43,7 +43,7 @@ async function basicExample() {
 
 //Uses the 'pushToClient' endpoint in the example server to demonstrate pushing data from the server to the client in the background
 async function pushExample() {
-    const pushToClientEndpoint = api.connectToEndpoint('pushToClient');
+    const pushToClientEndpoint = await api.connectToEndpoint('pushToClient');
 
     //Register code to run when the server sends us a 'time' event
     pushToClientEndpoint.on('time', (currentTime) => {
