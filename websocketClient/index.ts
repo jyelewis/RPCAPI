@@ -9,4 +9,4 @@ export { MockAPIClient } from './src/mocks/MockAPIClient'
 export { MockAPIEndpointClient } from './src/mocks/MockAPIEndpointClient'
 
 //Errors
-export { ConnectionTimeoutError } from './src/APIClient'
+export { ConnectionTimeoutError } from './src/errorTypes'

@@ -1,12 +1,14 @@
 
 import {IBasicSocket} from "./IBasicSocket";
 import {EventEmitter, eventHandler} from "./util/EventEmitter";
+import {ConnectionTimeoutError} from "./errorTypes";
 
 export class APIEndpointClient {
     private socket: IBasicSocket;
     public readonly endpointConnectionId: string;
     private readonly eventEmitter: EventEmitter;
     private emitEventHandler: (eventName: string, args: any) => void;
+    public timeout: number = 10 * 1000;
 
     constructor(socket: IBasicSocket, endpointConnectionId: string) {
         this.socket = socket;
@@ -34,7 +36,20 @@ export class APIEndpointClient {
 
     async callAction<T = any>(actionName: string, args: any = {}): Promise<T> {
         return new Promise<any>((resolve, reject) => {
+            let hasTimedOut = false;
+            const timeoutTimer = setTimeout(() => {
+                hasTimedOut = true;
+                reject(new ConnectionTimeoutError(`callAction('${actionName}', ${JSON.stringify(args)}) timed out`));
+            }, this.timeout);
+
             this.socket.emit('callEndpointFunction', this.endpointConnectionId, actionName, args, (errorMessage: string, retVal: any) => {
+                clearTimeout(timeoutTimer);
+
+                if (hasTimedOut) {
+                    //console.warn('callAction resolved after timeout error was already thrown, maybe you have a slow action?');
+                    return;
+                }
+
                 if (errorMessage) {
                     reject(new Error(errorMessage));
                     return;

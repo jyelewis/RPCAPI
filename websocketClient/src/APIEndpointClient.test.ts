@@ -137,3 +137,55 @@ test('Emits disconnectEndpointConnection on disconnect', async t => {
         apiEndpoint.disconnect();
     });
 });
+
+test('Throws timeout error if endpoint doesnt resolve within timeout', async t => {
+    const mockSocket = new EventEmitter();
+
+    mockSocket.on('callEndpointFunction', (endpointConnectionId: string, actionName: string, args: any, cb: (errorMessage: string, res: any) => void) => {
+        if (actionName === 'fast') {
+            return cb(null, { val: 'Hello world!' });
+        }
+
+        if (actionName === 'slow') {
+            setTimeout(() => {
+                cb(null, { val: 'Hello world!' });
+            }, 100);
+        }
+
+        if (actionName === 'tooslow') {
+            setTimeout(() => {
+                cb(null, { val: 'Hello world!' });
+            }, 300);
+        }
+
+        if (actionName === 'never') {
+            return;
+        }
+    });
+
+    const apiEndpointClient = new APIEndpointClient(mockSocket, 'ep1');
+    apiEndpointClient.timeout = 200;
+
+    const response1 = await apiEndpointClient.callAction('fast');
+    t.deepEqual(response1, { val: 'Hello world!' });
+
+    const response2 = await apiEndpointClient.callAction('slow');
+    t.deepEqual(response2, { val: 'Hello world!' });
+
+    try {
+        await apiEndpointClient.callAction('tooslow');
+        t.fail();
+    } catch(e) {
+        t.is(e.message, 'callAction(\'tooslow\', {}) timed out');
+        t.pass();
+    }
+
+    try {
+        await apiEndpointClient.callAction('never', { val: 1 });
+        t.fail();
+    } catch(e) {
+        t.is(e.message, 'callAction(\'never\', {"val":1}) timed out');
+        t.pass();
+    }
+
+});

@@ -1,20 +1,12 @@
 import * as io from 'socket.io-client'
 import {APIEndpointClient} from "./APIEndpointClient";
 import {IBasicSocket} from "./IBasicSocket";
-
-export class ConnectionTimeoutError extends Error {
-    constructor(m?: string) {
-        super(m);
-
-        // Set the prototype explicitly.
-        Object.setPrototypeOf(this, ConnectionTimeoutError.prototype);
-    }
-}
+import {ConnectionTimeoutError} from "./errorTypes";
 
 export class APIClient {
     private readonly socketAddr: string;
     protected socket: IBasicSocket;
-    public connectionTimeout: number = 5000;
+    public timeout: number = 10 * 1000;
 
     constructor(socketAddr: string) {
         this.socketAddr = socketAddr;
@@ -34,7 +26,7 @@ export class APIClient {
         return new Promise((resolve, reject) => {
             const serverReadyTimer = setTimeout(() => {
                 reject(new ConnectionTimeoutError('Timed out waiting for serverReady'));
-            }, this.connectionTimeout);
+            }, this.timeout);
             this.socket.on('serverReady', () => {
                 clearTimeout(serverReadyTimer);
                 resolve();
@@ -43,7 +35,7 @@ export class APIClient {
     }
 
     //Used for unit tests
-    async mockSocket(mockSocket: IBasicSocket) {
+    async mockSocketConnect(mockSocket: IBasicSocket) {
         this.socket = mockSocket;
         await this.waitForServerReady();
     }
@@ -54,7 +46,20 @@ export class APIClient {
         }
 
         return new Promise<APIEndpointClient>((resolve, reject) => {
+            let hasTimedOut = false;
+            const timeoutTimer = setTimeout(() => {
+                hasTimedOut = true;
+                reject(new ConnectionTimeoutError(`connectToEndpoint('${endpointName}') timed out`));
+            }, this.timeout);
+
             this.socket.emit('connectToEndpoint', endpointName, (errorMessage: string, endpointConnectionId: string) => {
+                clearTimeout(timeoutTimer);
+
+                if (hasTimedOut) {
+                    //console.warn('connectToEndpoint resolved after timeout error was already thrown, maybe you have a slow endpoint?');
+                    return;
+                }
+
                 if (errorMessage) {
                     reject(new Error(errorMessage));
                     return;
