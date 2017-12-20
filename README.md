@@ -1,4 +1,4 @@
-![Build status](https://travis-ci.org/jyelewis/RPCAPI.svg?branch=master)
+[![Build status](https://travis-ci.org/jyelewis/RPCAPI.svg?branch=master)](https://travis-ci.org/jyelewis/RPCAPI)
 
 # RPC API
 Provides a structure for hosting RPC style APIs, supports both http and websocket access out of the box.

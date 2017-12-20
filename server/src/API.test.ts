@@ -27,3 +27,22 @@ test('Returns null if endpoint doesnt exist', async t => {
 
     t.is(null, api.getEndpoint('doesntExist'));
 });
+
+test('Endpoint names are case insensitive', async t => {
+    class TestEndpoint extends APIEndpoint {}
+
+    const api = new API();
+    api.registerEndpoint('test 1', TestEndpoint);
+    api.registerEndpoint('TEST 2', TestEndpoint);
+    api.registerEndpoint('TesT 3', TestEndpoint);
+
+
+    const inst1 = api.getEndpoint('TEST 1');
+    t.true(inst1 instanceof TestEndpoint);
+
+    const inst2 = api.getEndpoint('test 2');
+    t.true(inst2 instanceof TestEndpoint);
+
+    const inst3 = api.getEndpoint('TEst 3');
+    t.true(inst3 instanceof TestEndpoint);
+});

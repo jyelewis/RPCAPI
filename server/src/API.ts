@@ -15,11 +15,15 @@ export interface IAPIListenConfig {
 export class API {
     private endpoints: { [key: string]: new () => APIEndpoint } = Object.create(null);
     public registerEndpoint(endpointName: string, endpointClass: new () => APIEndpoint) {
+        endpointName = endpointName.toLowerCase();
+
         this.endpoints[endpointName] = endpointClass;
     }
 
     //Returns a new instance of the endpoint instance
     public getEndpoint(endpointName: string): APIEndpoint {
+        endpointName = endpointName.toLowerCase();
+
         if (this.endpoints[endpointName]) {
             return new (this.endpoints[endpointName])();
         }
