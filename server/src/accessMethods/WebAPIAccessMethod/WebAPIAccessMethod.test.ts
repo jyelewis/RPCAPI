@@ -3,6 +3,7 @@ import test from 'ava';
 import {API} from '../../API'
 import {WebAPIAccessMethod} from './index'
 import {APIEndpoint} from "../../APIEndpoint";
+import {delay} from "../../util/delay";
 
 test('Calls endpoint', async t => {
     let hasCalled: boolean = false;
@@ -79,4 +80,54 @@ test('Doesn\'t pass values that are not defined in params', async t => {
     });
 
     t.deepEqual(retVal, { done: true });
+});
+
+test('Waits for connect() to complete before executing action', async t => {
+    let hasConnected = false;
+
+    class TestEndpoint extends APIEndpoint {
+        async connect() {
+            await delay(10);
+            hasConnected = true;
+        }
+
+        $testFunc() {
+            t.true(hasConnected);
+            return { done: true };
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebAPIAccessMethod(testApi);
+
+    await accessMethod.processRequest('test', 'testFunc', {});
+});
+
+test('Calls disconnect() in background after executing action', async t => {
+    let hasDisconnected = false;
+
+    class TestEndpoint extends APIEndpoint {
+        async disconnect() {
+            await delay(10);
+            hasDisconnected = true;
+        }
+
+        $testFunc() {
+            return { done: true };
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebAPIAccessMethod(testApi);
+
+    await accessMethod.processRequest('test', 'testFunc', {});
+    t.false(hasDisconnected);
+
+    await delay(20);
+
+    t.true(hasDisconnected);
 });

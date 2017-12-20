@@ -28,18 +28,24 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
     handleNewConnection(socket: SocketIO.Socket) {
         socket.on('connectToEndpoint',
             (endpointName: string, cb: (error: string, epcid: string) => void) => {
-                const endpointConnection = this.createNewSocketEndpoint(socket.id, endpointName);
-                if (endpointConnection === null) {
-                    cb(`Unable to create endpoint connection, '${endpointName}' does not exist`, null);
-                    return;
-                }
+                this.createNewSocketEndpoint(socket.id, endpointName).then(endpointConnection => {
 
-                endpointConnection.endpoint.registerEmitHandler((eventName: string, args: any[]) => {
-                    //Called when the endpoint calls .emit()
-                    socket.emit(`emitEvent.${endpointConnection.endpointConnectionId}`, eventName, args);
+                    if (endpointConnection === null) {
+                        cb(`Unable to create endpoint connection, '${endpointName}' does not exist`, null);
+                        return;
+                    }
+
+                    endpointConnection.endpoint.registerEmitHandler((eventName: string, args: any[]) => {
+                        //Called when the endpoint calls .emit()
+                        socket.emit(`emitEvent.${endpointConnection.endpointConnectionId}`, eventName, args);
+                    });
+
+                    cb(null, endpointConnection.endpointConnectionId);
+
+                }).catch(e => {
+                    console.error(e);
+                    cb(`Unable to create endpoint connection, '${endpointName}' threw an error while setting up`, null);
                 });
-
-                cb(null, endpointConnection.endpointConnectionId);
             }
         );
 
@@ -72,7 +78,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
         socket.emit('serverReady');
     }
 
-    createNewSocketEndpoint(socketId: string, endpointName: string): IEndpointConnection {
+    async createNewSocketEndpoint(socketId: string, endpointName: string): Promise<IEndpointConnection> {
         const endpoint = this.api.getEndpoint(endpointName);
         if (endpoint === null) {
             return null;
@@ -86,16 +92,17 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
 
         this.addEndpointConnection(newEndpointConnection);
 
-        newEndpointConnection.endpoint.connect();
+        await newEndpointConnection.endpoint.callConnect();
 
         return newEndpointConnection;
     }
 
     disconnectAllSocketEndpoints(socketId: string) {
         const endpointConnections = this.getEndpointConnectionsForSocketId(socketId);
-        endpointConnections.forEach(epc => {
-            epc.endpoint.disconnect();
-        });
+
+        endpointConnections.forEach(epc =>
+            epc.endpoint.callDisconnect().catch(console.error)
+        );
 
         //We can now GC these socket endpoint connections
         this.removeEndpointConnectionsForSocketId(socketId);
@@ -110,7 +117,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
             throw new Error('Cannot disconnect endpoint, it doesnt belong to this socket');
         }
 
-        endpointConnection.endpoint.disconnect();
+        endpointConnection.endpoint.callDisconnect().catch(console.error);
 
         //We can now GC this endpoint connection
         this.removeEndpointConnectionById(endpointConnectionId);
@@ -119,7 +126,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
     async callEndpointAction(socketId: string, endpointConnectionId: string, actionName: string, params: any): Promise<any> {
         const endpointConnection = this.getEndpointConnectionById(endpointConnectionId);
         if (endpointConnection === undefined) {
-            throw new NotFoundError(`endpointConnection '${endpointConnectionId}' does not exist`);
+            throw new NotFoundError(`endpointConnection '${endpointConnectionId}' does not exist, has it been closed?`);
         }
 
         if (endpointConnection.socketId !== socketId) {

@@ -74,6 +74,8 @@ export class WebAPIAccessMethod {
             throw new NotFoundError(`Action '${actionName}' does not exist`);
         }
 
+        await endpoint.callConnect();
+
         //convert values into correct type
         const actionParams = endpoint.actionParams(actionName);
         let typedParams: any = {};
@@ -85,6 +87,10 @@ export class WebAPIAccessMethod {
             }
         }
 
-        return await endpoint.callAction(actionName, typedParams);
+        const epValue = await endpoint.callAction(actionName, typedParams);
+
+        endpoint.callDisconnect().catch(console.error); //Run disconnect in background, can return before this completes
+
+        return epValue;
     }
 }

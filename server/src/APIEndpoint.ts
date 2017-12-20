@@ -8,6 +8,7 @@ export enum paramType {
 }
 
 export class APIEndpoint {
+    private connected: boolean = false;
     private emitHandler: (eventName: string, args: any[]) => void;
 
     actionExists(actionName: string) {
@@ -25,6 +26,9 @@ export class APIEndpoint {
     }
 
     async callAction(actionName: string, args: any = {}): Promise<any> {
+        if (!this.connected) {
+            throw new Error('Cannot call action when endpoint is not connected (before connect() or after disconnect())');
+        }
         if (!this.actionExists(actionName)) {
             throw new Error(`Action '${actionName}' does not exist`);
         }
@@ -41,6 +45,23 @@ export class APIEndpoint {
         return retVal;
     }
 
+    //TODO: Test
+    async callConnect() {
+        if (this.connected) {
+            throw new Error('Cannot connect while already connected');
+        }
+        this.connected = true;
+        await this.connect();
+    }
+
+    async callDisconnect() {
+        if (!this.connected) {
+            throw new Error('Cannot disconnect when not connected');
+        }
+        this.connected = false;
+        await this.disconnect();
+    }
+
     connect() {}
 
     disconnect() {}
@@ -54,6 +75,10 @@ export class APIEndpoint {
     }
 
     emit(eventName: string, ...args: any[]) {
+        if (!this.connected) {
+            throw new Error('Cannot emit when endpoint is not connected (before connect() or after disconnect())');
+        }
+
         if (!this.canEmit()) {
             throw new Error('emit() called when no emit handler is registered');
         }

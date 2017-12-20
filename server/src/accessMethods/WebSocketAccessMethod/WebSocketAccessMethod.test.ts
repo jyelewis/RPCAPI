@@ -3,6 +3,7 @@ import test from 'ava';
 import {API} from '../../API'
 import {WebSocketAccessMethod} from './index'
 import {APIEndpoint} from "../../APIEndpoint";
+import {delay} from "../../util/delay";
 
 test('Calls connect() when new endpoint is created', async t => {
     let hasCalled: boolean = false;
@@ -18,9 +19,50 @@ test('Calls connect() when new endpoint is created', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
 
     t.is(hasCalled, true);
+});
+
+test('Doesnt return the endpoint until callConnect() has resolved', async t => {
+    let hasConnected: boolean = false;
+
+    class TestEndpoint extends APIEndpoint {
+        async connect() {
+            await delay(10);
+            hasConnected = true;
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebSocketAccessMethod(testApi);
+
+    await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+
+    t.is(hasConnected, true);
+});
+
+test('Throws while connecing to endpoint if connect() fails', async t => {
+    class TestEndpoint extends APIEndpoint {
+        connect() {
+            throw new Error('broke lol');
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebSocketAccessMethod(testApi);
+
+    try {
+        await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+        t.fail();
+    } catch(e) {
+        t.pass();
+    }
+
 });
 
 test('Calls disconnect() when socket disconnects', async t => {
@@ -44,8 +86,8 @@ test('Calls disconnect() when socket disconnects', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    accessMethod.createNewSocketEndpoint('mySocketID', 'test1');
-    accessMethod.createNewSocketEndpoint('mySocketID', 'test2');
+    await accessMethod.createNewSocketEndpoint('mySocketID', 'test1');
+    await accessMethod.createNewSocketEndpoint('mySocketID', 'test2');
 
     accessMethod.disconnectAllSocketEndpoints('mySocketID');
 
@@ -65,7 +107,7 @@ test('Calling socket endpoint after disconnecting fails', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
 
     //Make sure we can call before disconnect without throwing
     await accessMethod.callEndpointAction('mySocketID', endpointConnection.endpointConnectionId, 'test', {});
@@ -100,11 +142,11 @@ test('Disconnecting a socket cleans up all endpoints', async t => {
 
     t.is(accessMethod.numberOfActiveConnections(), 0);
 
-    accessMethod.createNewSocketEndpoint('mySocketID1', 'test1');
-    accessMethod.createNewSocketEndpoint('mySocketID1', 'test2');
+    await accessMethod.createNewSocketEndpoint('mySocketID1', 'test1');
+    await accessMethod.createNewSocketEndpoint('mySocketID1', 'test2');
     t.is(accessMethod.numberOfActiveConnections(), 2);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID2', 'test1');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID2', 'test1');
     t.is(accessMethod.numberOfActiveConnections(), 3);
 
     //Make sure we can call before disconnect without throwing
@@ -133,7 +175,7 @@ test('disconnectEndpointConnection() calls disconnect on endpoint', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
 
     //Make sure we can call before disconnect without throwing
     await accessMethod.callEndpointAction('mySocketID', endpointConnection.endpointConnectionId, 'test', {});
@@ -159,7 +201,7 @@ test('disconnectEndpointConnection() garbage collects endpoint', async t => {
 
     t.is(accessMethod.numberOfActiveConnections(), 0);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
     t.is(accessMethod.numberOfActiveConnections(), 1);
 
     //Make sure we can call before disconnect without throwing
@@ -187,7 +229,7 @@ test('disconnectEndpointConnection() fails if endpoint doesnt belong to given so
 
     t.is(accessMethod.numberOfActiveConnections(), 0);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
     t.is(accessMethod.numberOfActiveConnections(), 1);
 
     //Make sure we can call before disconnect without throwing
@@ -216,7 +258,7 @@ test('Calls action', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
     const retVal = await accessMethod.callEndpointAction(
         'mySocketID',
         endpointConnection.endpointConnectionId,
@@ -240,7 +282,7 @@ test('callAction() fails if endpoint doesnt belong to socket', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
 
     try {
         await accessMethod.callEndpointAction(
@@ -252,6 +294,37 @@ test('callAction() fails if endpoint doesnt belong to socket', async t => {
         t.fail('Did not throw');
     } catch(e) {
         t.pass();
+    }
+});
+
+test('callAction() fails with valid error message if connection is closed', async t => {
+    t.plan(2);
+
+    class TestEndpoint extends APIEndpoint {
+        disconnect() {
+            t.pass();
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebSocketAccessMethod(testApi);
+
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+
+    accessMethod.disconnectEndpointConnection('mySocketID', endpointConnection.endpointConnectionId);
+
+    try {
+        await accessMethod.callEndpointAction(
+            'mySocketID',
+            endpointConnection.endpointConnectionId,
+            'testFunc',
+            {}
+        );
+        t.fail('Did not throw');
+    } catch(e) {
+        t.regex(e.message, /does not exist, has it been closed\?$/);
     }
 });
 
@@ -272,7 +345,7 @@ test('Passes param to action', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
     const retVal = await accessMethod.callEndpointAction(
         'mySocketID',
         endpointConnection.endpointConnectionId,
@@ -301,7 +374,7 @@ test('Doesn\'t pass unspecified params', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
     const retVal = await accessMethod.callEndpointAction(
         'mySocketID',
         endpointConnection.endpointConnectionId,
@@ -325,7 +398,7 @@ test('Throws if params are not the correct type', async t => {
 
     const accessMethod = new WebSocketAccessMethod(testApi);
 
-    const endpointConnection = accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+    const endpointConnection = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
 
     try {
         await accessMethod.callEndpointAction(

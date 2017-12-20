@@ -1,6 +1,7 @@
 import test from 'ava'
 
 import {APIEndpoint, paramType} from './APIEndpoint'
+import {delay} from "./util/delay";
 
 test('actionExists()', async t => {
     class TestEndpoint extends APIEndpoint {
@@ -50,6 +51,7 @@ test('callAction() sync', async t => {
     }
 
     const ep = new TestEndpoint();
+    await ep.callConnect();
 
     const val = await ep.callAction('add', { a: 123 });
     t.deepEqual(val, {
@@ -72,6 +74,7 @@ test('callAction() async', async t => {
     }
 
     const ep = new TestEndpoint();
+    await ep.callConnect();
 
     const val = await ep.callAction('add', { a: 123 });
     t.deepEqual(val, {
@@ -94,6 +97,7 @@ test('callAction() calls with correct "this" context', async t => {
     }
 
     const ep = new TestEndpoint();
+    await ep.callConnect();
 
     await ep.callAction('add');
 });
@@ -149,6 +153,7 @@ test('canEmit() correctly tells if an emitHandler has been registered', async t 
 
 test('Emit handler is called when emitting', async t => {
     const ep = new APIEndpoint();
+    await ep.callConnect();
 
     //We cant emit, there is no handler registered
     t.false(ep.canEmit());
@@ -163,6 +168,7 @@ test('Emit handler is called when emitting', async t => {
 
 test('Throws if .emit is called with no handler registered', async t => {
     const ep = new APIEndpoint();
+    await ep.callConnect();
 
     //We cant emit, there is no handler registered
     t.false(ep.canEmit());
@@ -170,4 +176,122 @@ test('Throws if .emit is called with no handler registered', async t => {
     t.throws(
         () => ep.emit('testEventName', 'arg1', 2, 'arg3')
     );
+});
+
+test('Throws if .emit is called before connect', async t => {
+    const ep = new APIEndpoint();
+    ep.registerEmitHandler(() => {});
+
+    t.true(ep.canEmit());
+
+    //Still should throw because we have not called connect yet
+    t.throws(
+        () => ep.emit('testEventName', 'arg1', 2, 'arg3')
+    );
+});
+
+test('Throws if .emit is called after disconnect', async t => {
+    const ep = new APIEndpoint();
+    ep.registerEmitHandler(() => {});
+
+    t.true(ep.canEmit());
+
+    await ep.callConnect();
+
+    t.notThrows(
+        () => ep.emit('testEventName', 'arg1', 2, 'arg3')
+    );
+
+    await ep.callDisconnect();
+
+    t.throws(
+        () => ep.emit('testEventName', 'arg1', 2, 'arg3')
+    );
+});
+
+test('callConnect and callDisconnect do not fail if the endpoint does not have functions for these hooks', async t => {
+    class TestEndpoint extends APIEndpoint {}
+
+    const ep = new TestEndpoint();
+
+    await ep.callConnect();
+    await ep.callDisconnect();
+
+    t.pass();
+});
+
+test('callConnect() calls connect and returns once connect() resolves', async t => {
+    let assert1 = false;
+    let assert2 = false;
+
+    class TestEndpoint extends APIEndpoint {
+        async connect() {
+            assert1 = true;
+            await delay(10);
+            assert2 = true;
+        }
+    }
+
+    const ep = new TestEndpoint();
+
+    t.false(assert1);
+    t.false(assert2);
+    await ep.callConnect();
+    t.true(assert1);
+    t.true(assert2);
+});
+
+test('callDisconnect() calls disconnect and returns once disconnect() resolves', async t => {
+    let assert1 = false;
+    let assert2 = false;
+
+    class TestEndpoint extends APIEndpoint {
+        async disconnect() {
+            assert1 = true;
+            await delay(10);
+            assert2 = true;
+        }
+    }
+
+    const ep = new TestEndpoint();
+
+    await ep.callConnect();
+
+    t.false(assert1);
+    t.false(assert2);
+    await ep.callDisconnect();
+    t.true(assert1);
+    t.true(assert2);
+});
+
+test('Throws if trying to callConnect() while already connected', async t => {
+    class TestEndpoint extends APIEndpoint {}
+
+    const ep = new TestEndpoint();
+
+    await ep.callConnect();
+
+    try {
+        await ep.callConnect();
+        t.fail();
+    } catch(e) {
+        t.pass();
+    }
+});
+
+test('Throws if trying to callDisconnect() while not connected', async t => {
+    class TestEndpoint extends APIEndpoint {}
+
+    const ep = new TestEndpoint();
+
+    await ep.callConnect();
+
+    await ep.callDisconnect();
+
+    try {
+        await ep.callDisconnect();
+        t.fail();
+    } catch(e) {
+        t.pass();
+    }
 });
