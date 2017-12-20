@@ -8,16 +8,16 @@ test('Registers and returns endpoint', async t => {
     class TestEndpoint2 extends APIEndpoint {}
 
     const api = new API();
-    api.registerEndpoint('test 1', TestEndpoint1);
-    api.registerEndpoint('test 2', TestEndpoint2);
+    api.registerEndpoint('test1', TestEndpoint1);
+    api.registerEndpoint('test2', TestEndpoint2);
 
-    const inst1 = api.getEndpoint('test 1');
+    const inst1 = api.getEndpoint('test1');
     t.true(inst1 instanceof TestEndpoint1);
 
-    const inst2 = api.getEndpoint('test 2');
+    const inst2 = api.getEndpoint('test2');
     t.true(inst2 instanceof TestEndpoint2);
 
-    const inst3 = api.getEndpoint('test 1');
+    const inst3 = api.getEndpoint('test1');
     t.true(inst3 instanceof TestEndpoint1);
     t.true(inst3 !== inst1);
 });
@@ -32,17 +32,43 @@ test('Endpoint names are case insensitive', async t => {
     class TestEndpoint extends APIEndpoint {}
 
     const api = new API();
-    api.registerEndpoint('test 1', TestEndpoint);
-    api.registerEndpoint('TEST 2', TestEndpoint);
-    api.registerEndpoint('TesT 3', TestEndpoint);
+    api.registerEndpoint('test-1', TestEndpoint);
+    api.registerEndpoint('TEST-2', TestEndpoint);
+    api.registerEndpoint('TesT-3', TestEndpoint);
 
 
-    const inst1 = api.getEndpoint('TEST 1');
+    const inst1 = api.getEndpoint('TEST-1');
     t.true(inst1 instanceof TestEndpoint);
 
-    const inst2 = api.getEndpoint('test 2');
+    const inst2 = api.getEndpoint('test-2');
     t.true(inst2 instanceof TestEndpoint);
 
-    const inst3 = api.getEndpoint('TEst 3');
+    const inst3 = api.getEndpoint('TEst-3');
     t.true(inst3 instanceof TestEndpoint);
+});
+
+test('Validates endpoint name on register', async t => {
+    class TestEndpoint extends APIEndpoint {}
+
+    const api = new API();
+
+    t.notThrows(() =>
+        api.registerEndpoint('test-1', TestEndpoint)
+    );
+
+    t.notThrows(() =>
+        api.registerEndpoint('TEST.2', TestEndpoint)
+    );
+
+    t.notThrows(() =>
+        api.registerEndpoint('TesT_3', TestEndpoint)
+    );
+
+    t.throws(
+        () => api.registerEndpoint('test 1', TestEndpoint)
+    );
+
+    t.throws(
+        () => api.registerEndpoint('test&', TestEndpoint)
+    );
 });

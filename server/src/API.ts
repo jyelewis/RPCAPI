@@ -6,6 +6,7 @@ import * as socketio from 'socket.io'
 import * as http from 'http'
 import {IWebAPIAccessMethodConfig, WebAPIAccessMethod} from "./accessMethods/WebAPIAccessMethod/index";
 import {WebSocketAccessMethod} from "./accessMethods/WebSocketAccessMethod/index";
+import {isValidEndpointName} from "./isValidEndpointName";
 
 export interface IAPIListenConfig {
     webApi?: IWebAPIAccessMethodConfig,
@@ -16,6 +17,10 @@ export class API {
     private endpoints: { [key: string]: new () => APIEndpoint } = Object.create(null);
     public registerEndpoint(endpointName: string, endpointClass: new () => APIEndpoint) {
         endpointName = endpointName.toLowerCase();
+
+        if (!isValidEndpointName(endpointName)) {
+            throw new Error(`Endpoint name '${endpointName}' is not valid, endpoint names can only contain alphanumeric characters, '-', '_' and '.'`);
+        }
 
         this.endpoints[endpointName] = endpointClass;
     }
