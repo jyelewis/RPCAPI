@@ -6,17 +6,17 @@ set -e
 #install deps
 cd server
 yarn
-../server/node_modules/typescript/bin/tsc
+./node_modules/typescript/bin/tsc
 cd ..
 
 cd websocketClient
 yarn
-../server/node_modules/typescript/bin/tsc
+./node_modules/typescript/bin/tsc
 cd ..
 
 cd e2eTests
 yarn
-../server/node_modules/typescript/bin/tsc
+./node_modules/typescript/bin/tsc
 cd ..
 
 #run all tests (with coverage)
