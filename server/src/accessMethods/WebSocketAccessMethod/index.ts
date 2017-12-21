@@ -7,6 +7,7 @@ import {validateParamType} from "./validateParamType";
 import {createGuid} from "../../util/guid";
 
 export class WebSocketAccessMethod extends EndpointConnectionIndex {
+    public outputActionErrors: boolean = true;
     private readonly api: API;
     private io: SocketIO.Server;
 
@@ -59,7 +60,9 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                         } else if (e instanceof InvalidTypeError) {
                             cb(e.message, null);
                         } else {
-                            console.error(e);
+                            if (this.outputActionErrors) {
+                                console.error(e);
+                            }
                             cb('Internal server error', null);
                         }
                     });
