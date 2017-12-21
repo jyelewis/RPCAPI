@@ -2,7 +2,7 @@
     "name": "rpcapi-example-websocket-client",
     "version": "1.0.0",
     "dependencies": {
-        "rpcapi-websocket-client": "latest",
+        "rpcapi-websocket-client": "^1.0.6",
         "webpack": "^3.10.0",
         "webpack-dev-server": "^2.9.7"
     },

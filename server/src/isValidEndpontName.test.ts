@@ -12,11 +12,11 @@ test('Validates endpoint names', t => {
     t.true(isValidEndpointName('test-users.12a3.-test'));
     t.true(isValidEndpointName('HELLOWORLD.-_'));
     t.true(isValidEndpointName('__test__'));
+    t.true(isValidEndpointName('test/users'));
 
     //Invalid names
     t.false(isValidEndpointName('test users'));
     t.false(isValidEndpointName('test   users'));
-    t.false(isValidEndpointName('test/users'));
     t.false(isValidEndpointName('test=users'));
     t.false(isValidEndpointName('Hellø'));
     t.false(isValidEndpointName('Tommy&Krista'));

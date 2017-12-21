@@ -16,7 +16,7 @@ export class WebAPIAccessMethod {
     public readonly prefix: string;
     private readonly api: API;
 
-    public outputActionErrors: boolean = true;
+            public outputActionErrors: boolean = true;
 
     constructor(api: API, config: IWebAPIAccessMethodConfig = defaultConfig) {
         this.prefix = config.prefix || defaultConfig.prefix;
@@ -24,7 +24,7 @@ export class WebAPIAccessMethod {
     }
 
     bind(app: Express) {
-        app.get(`${this.prefix}/:endpoint/:action`, (req, res) => {
+        app.get(`${this.prefix}/:endpoint(*)/:action`, (req, res) => {
             const endpointName = req.params.endpoint;
             const actionName = req.params.action;
 

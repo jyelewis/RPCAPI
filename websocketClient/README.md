@@ -1,4 +1,4 @@
-![Build status](https://travis-ci.org/jyelewis/RPCAPI.svg?branch=master)
+[![Build status](https://travis-ci.org/jyelewis/RPCAPI.svg?branch=master)](https://travis-ci.org/jyelewis/RPCAPI) [![Coverage Status](https://coveralls.io/repos/github/jyelewis/RPCAPI/badge.svg?branch=master)](https://coveralls.io/github/jyelewis/RPCAPI?branch=master)
 
 # RPC API
 Provides a structure for hosting RPC style APIs, supports both http and websocket access out of the box.

@@ -45,7 +45,6 @@ export class APIEndpoint {
         return retVal;
     }
 
-    //TODO: Test
     async callConnect() {
         if (this.connected) {
             throw new Error('Cannot connect while already connected');

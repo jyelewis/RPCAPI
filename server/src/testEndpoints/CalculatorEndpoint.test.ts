@@ -1,5 +1,6 @@
 import test from 'ava'
 import {CalculatorEndpoint} from './CalculatorEndpoint'
+import {delay} from "../util/delay";
 
 test('Add basic numbers', async t => {
     const calc = new CalculatorEndpoint();
@@ -74,4 +75,35 @@ test('Slow adds many items in parallel', async t => {
             t.deepEqual(res, { value: c.res });
         })
     );
+});
+
+test('Watches adds', async t => {
+    const calc = new CalculatorEndpoint();
+    await calc.callConnect();
+
+    calc.registerEmitHandler((eventName: string, args: any[]) => {
+        t.is(eventName, 'addCalculationPerformed');
+        t.is(args[0], 3);
+        t.pass();
+    });
+
+    const value = await calc.callAction('watchAdds');
+    t.deepEqual(value, { done: true });
+
+    await calc.callAction('add',{ a: 1, b: 2 });
+
+    await delay(10);
+});
+
+test('Fails to watch adds if the connection doenst allow emitting', async t => {
+    const calc = new CalculatorEndpoint();
+    await calc.callConnect();
+
+    try {
+        await calc.callAction('watchAdds');
+        t.fail();
+    } catch(e) {
+        t.is(e.message, 'Cannot watch adds from and endpoint that cannot receive events');
+        t.pass();
+    }
 });
