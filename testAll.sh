@@ -6,23 +6,18 @@ set -e
 #install deps
 cd server
 yarn
+tsc
 cd ..
 
 cd websocketClient
 yarn
+tsc
 cd ..
 
 cd e2eTests
 yarn
+tsc
 cd ..
-
-pwd
-ls
-ls ./server/src
-echo '1'
-echo $(find ./server/src -type f \( -name "*.test.js" -o -name "*.itest.js" \)) \
-    $(find ./websocketClient/src -type f \( -name "*.test.js" -o -name "*.itest.js" \))
-echo '2'
 
 #run all tests (with coverage)
 ./server/node_modules/nyc/bin/nyc.js ./server/node_modules/ava/cli.js --verbose \
