@@ -11,3 +11,10 @@ cd ..
 cd websocketClient
 yarn
 npm test -- --verbose
+cd ..
+
+#e2e tests
+cd e2eTests
+yarn
+npm test -- --verbose
+cd ..

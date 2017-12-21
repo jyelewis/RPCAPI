@@ -1,0 +1,12 @@
+{
+    "name": "rpcapi-e2e-tests",
+    "version": "1.0.0",
+    "dependencies": {
+        "ava": "^0.24.0"
+    },
+    "main": "index.js",
+    "scripts": {
+        "pretest": "tsc",
+        "test": "ava --serial"
+    }
+}

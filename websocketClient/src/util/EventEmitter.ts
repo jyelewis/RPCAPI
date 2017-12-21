@@ -38,9 +38,5 @@ export class EventEmitter {
 }
 
 function nextTick(cb: () => void) {
-    if(typeof window !== 'undefined' && window.requestAnimationFrame) {
-        window.requestAnimationFrame(cb);
-    } else {
-        setTimeout(cb, 0);
-    }
+    setTimeout(cb, 0);
 }

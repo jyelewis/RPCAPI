@@ -42,7 +42,7 @@ export class APIClient {
 
     public async connectToEndpoint(endpointName: string): Promise<APIEndpointClient> {
         if (!this.socket) {
-            throw new Error('Cannot connect to endpoint before socket connection is established');
+            throw new Error('Cannot connect to endpoint before socket connection is established, have you forgotten to call connect() ?');
         }
 
         return new Promise<APIEndpointClient>((resolve, reject) => {

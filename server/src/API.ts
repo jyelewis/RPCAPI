@@ -14,6 +14,9 @@ export interface IAPIListenConfig {
 }
 
 export class API {
+    //Server stuff
+    public server: http.Server = null;
+
     private endpoints: { [key: string]: new () => APIEndpoint } = Object.create(null);
     public registerEndpoint(endpointName: string, endpointClass: new () => APIEndpoint) {
         endpointName = endpointName.toLowerCase();
@@ -41,8 +44,8 @@ export class API {
     public listen(port: number, options: IAPIListenConfig = {}): Promise<void> {
         return new Promise(resolve => {
             const app = express();
-            const server = new http.Server(app);
-            const io = socketio(server);
+            this.server = new http.Server(app);
+            const io = socketio(this.server);
 
             //Setup access methods
             const webApi = new WebAPIAccessMethod(this, options.webApi);
@@ -52,7 +55,7 @@ export class API {
             socketApi.bind(io);
 
             //server listen
-            server.listen(port, () => resolve());
+            this.server.listen(port, () => resolve());
         });
     }
 }
