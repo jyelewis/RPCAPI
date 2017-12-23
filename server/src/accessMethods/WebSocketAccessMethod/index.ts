@@ -105,7 +105,9 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
 
         endpoint.accessKey = accessKey;
 
+        //TODO: Clean up automatically if this fails? (we will currently leave a dead connection registered)
         await newEndpointConnection.endpoint.callConnect();
+
 
         return newEndpointConnection;
     }

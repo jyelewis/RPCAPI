@@ -6,6 +6,7 @@ const LoginEndpoint = require('./endpoints/LoginEndpoint').LoginEndpoint;
 const PushToClientEndpoint = require('./endpoints/PushToClientEndpoint').PushToClientEndpoint;
 const BadEndpoint = require('./endpoints/BadEndpoint').BadEndpoint;
 const TypescriptCalculatorEndpoint = require('./endpoints/TypescriptCalculatorEndpoint').TypescriptCalculatorEndpoint;
+const RestrictedEndpoint = require('./endpoints/RestrictedEndpoint').RestrictedEndpoint;
 
 //Setup API
 const api = new rpcapi.API();
@@ -20,6 +21,8 @@ api.registerEndpoint('pushToClient', PushToClientEndpoint); //Example of pushing
 api.registerEndpoint('bad', BadEndpoint); //Throws an error (endpoint: throwError)
 
 api.registerEndpoint('typescriptCalculator', TypescriptCalculatorEndpoint); //Similar to the above calculator, using TS syntax
+
+api.registerEndpoint('restricted', RestrictedEndpoint); //Uses accessKey to require authentication before returning private data
 
 //Try accessing an endpoint via the webapi
 // http://localhost:8081/api/calculator/add?a=1&b=2

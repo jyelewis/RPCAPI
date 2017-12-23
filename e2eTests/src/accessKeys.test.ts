@@ -83,3 +83,27 @@ test.serial('Gives error if endpoint returns access denied on action', async t =
     await delay(50);
     testAPI.server.close();
 });
+
+test.serial('Passes connection level access key if available', async t => {
+    //Server
+    class TestEndpoint extends APIEndpoint {
+        connect() {
+            t.is(this.accessKey, 'myAccessKey');
+        }
+    }
+
+    const testAPI = new API();
+    testAPI.registerEndpoint('test', TestEndpoint);
+    await testAPI.listen(8052);
+
+    //Client
+    const apiClient = new APIClient('http://localhost:8052/');
+    apiClient.accessKey = 'myAccessKey';
+
+    await apiClient.connect();
+
+    await apiClient.connectToEndpoint('test');
+
+    await delay(50);
+    testAPI.server.close();
+});

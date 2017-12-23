@@ -7,6 +7,7 @@ export class APIClient {
     private readonly socketAddr: string;
     protected socket: IBasicSocket;
     public timeout: number = 10 * 1000;
+    public accessKey: string; //Used as a default when connecting to an endpoint
 
     constructor(socketAddr: string) {
         this.socketAddr = socketAddr;
@@ -43,6 +44,10 @@ export class APIClient {
     public async connectToEndpoint(endpointName: string, accessKey?: string): Promise<APIEndpointClient> {
         if (!this.socket) {
             throw new Error('Cannot connect to endpoint before socket connection is established, have you forgotten to call connect() ?');
+        }
+
+        if (!accessKey && this.accessKey) {
+            accessKey = this.accessKey; //Use connection level default accessKey
         }
 
         return new Promise<APIEndpointClient>((resolve, reject) => {

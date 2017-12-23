@@ -33,6 +33,10 @@ as well as providing a much nicer way to communicate with the server (RPC instea
 - [Pushing to the client (implementation)](#pushing-to-the-client-implementation)
   - [Server code](#pushing-to-the-client---server-code)
   - [Client code](#pushing-to-the-client---client-code)
+- [Authentication](#authentication)
+  - [Checking access keys](#checking-access-keys)
+  - [Providing an access key via webapi](#providing-an-access-key-via-webapi)
+  - [Providing an access key via websocket client](#providing-an-access-key-via-websocket-client)
 - [Advanced topics](#advanced-topics)
   - [Mocking](#mocking)
     - [Mocking APIClient example](#mocking-apiclient-example)
@@ -393,6 +397,39 @@ pushToClientEndpoint.on('time', (currentTime) => {
 //Call the startPushing action to request the server pushes the time to us every second
 await pushToClientEndpoint.callAction('startPushing');
 ```
+
+## Authentication
+When connecting to an endpoint, you can optionally provide an accessKey, this is available to the endpoint class via `this.accessKey`
+
+### Checking access keys
+From the api endpoint on the class, throw AccessDeniedError to reject a request.
+Generally this will be done after doing a lookup on the accessKey (`this.accessKey`) to determine whether the user has access to the requested resource.
+
+AccessDeniedError can be thrown from connect() to prevent the connection being completed.
+It can also be thrown from a specific action.
+
+### Providing an access key via webapi
+Access keys are simply passed as url parameters eg.
+```
+http://localhost:8081/api/calculator/add?accessKey=qwer2134&a=1&b=2
+```
+
+### Providing an access key via websocket client
+When connecting to an endpoint, pass the access key as the second parameter to .connectToEndpoint()
+```javascript
+const ep = await apiClient.connectToEndpoint('test', 'myAccessKey');
+```
+
+It is also possible to set a default access key at a connection level.
+
+This is useful when using access keys to identify a user, the default access key can be set after they login
+and from then on all requests will be authenticated. (NOTE: Existing connections will remain unchanged)
+
+```javascript
+apiClient.accessKey = 'myAccessKey';
+const ep = await apiClient.connectToEndpoint('test');
+```
+
 
 ## Advanced topics
 

@@ -7,7 +7,8 @@ console.log('Connecting to server...');
 api.connect().then(() => {
     window.apiClientExamples = {
         basic: basicExample,
-        push: pushExample
+        push: pushExample,
+        restricted: restrictedExample
     };
 
     console.log('Connected!');
@@ -58,4 +59,15 @@ async function pushExample() {
         console.log('Calling action stopPushing on server to request they stop telling us the time every second');
         pushToClientEndpoint.callAction('stopPushing').catch(console.error);
     }, 10 * 1000);
+}
+
+async function restrictedExample() {
+    //It is also possible to set the accessKey globally for this connection
+    //api.accessKey = 'asdfqwer1234';
+    //This will use that access key for every endpoint
+
+    const restrictedEndpoint = await api.connectToEndpoint('restricted', 'asdfqwer1234');
+
+    const data = await restrictedEndpoint.callAction('getSecretData');
+    console.log(data);
 }

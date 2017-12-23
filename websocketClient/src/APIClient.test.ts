@@ -36,6 +36,42 @@ test('Passes accessKey when requesting an endpoint connection', async t => {
     t.is(apiEndpointClient.endpointConnectionId, 'epcid');
 });
 
+test('Passes connection level accessKey if set when requesting an endpoint connection', async t => {
+    const mockEE = new EventEmitter();
+
+    mockEE.on('connectToEndpoint', (endpointName: string, accessKey: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
+        t.is(accessKey, 'myAccessKey');
+        cb(null, 'epcid');
+    });
+
+    const apiClient = new APIClient('');
+    apiClient.accessKey = 'myAccessKey';
+
+    setTimeout(() => mockEE.emit('serverReady'), 10);
+    await apiClient.mockSocketConnect(mockEE);
+
+    const apiEndpointClient = await apiClient.connectToEndpoint('testep');
+    t.is(apiEndpointClient.endpointConnectionId, 'epcid');
+});
+
+test('Prefers specified access key to connection level, if specified', async t => {
+    const mockEE = new EventEmitter();
+
+    mockEE.on('connectToEndpoint', (endpointName: string, accessKey: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
+        t.is(accessKey, 'myAccessKey2');
+        cb(null, 'epcid');
+    });
+
+    const apiClient = new APIClient('');
+    apiClient.accessKey = 'myAccessKey1';
+
+    setTimeout(() => mockEE.emit('serverReady'), 10);
+    await apiClient.mockSocketConnect(mockEE);
+
+    const apiEndpointClient = await apiClient.connectToEndpoint('testep', 'myAccessKey2');
+    t.is(apiEndpointClient.endpointConnectionId, 'epcid');
+});
+
 test('Throws if endpoint connection response contains an error', async t => {
     const mockEE = new EventEmitter();
 
