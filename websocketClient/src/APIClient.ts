@@ -40,7 +40,7 @@ export class APIClient {
         await this.waitForServerReady();
     }
 
-    public async connectToEndpoint(endpointName: string): Promise<APIEndpointClient> {
+    public async connectToEndpoint(endpointName: string, accessKey?: string): Promise<APIEndpointClient> {
         if (!this.socket) {
             throw new Error('Cannot connect to endpoint before socket connection is established, have you forgotten to call connect() ?');
         }
@@ -52,7 +52,7 @@ export class APIClient {
                 reject(new ConnectionTimeoutError(`connectToEndpoint('${endpointName}') timed out`));
             }, this.timeout);
 
-            this.socket.emit('connectToEndpoint', endpointName, (errorMessage: string, endpointConnectionId: string) => {
+            this.socket.emit('connectToEndpoint', endpointName, accessKey, (errorMessage: string, endpointConnectionId: string) => {
                 clearTimeout(timeoutTimer);
 
                 if (hasTimedOut) {

@@ -6,12 +6,21 @@ import * as http from "http";
 import {APIEndpoint} from "../../APIEndpoint";
 import {API} from "../../API";
 import fetch from "node-fetch";
+import {AccessDeniedError} from "../../errorTypes";
 
 let server: http.Server;
 
 test.before(() => {
     class TestEndpoint extends APIEndpoint {
         $sayHello() {
+            return { hello: 'world' };
+        }
+
+        $requiresAuth() {
+            if (this.accessKey !== 'myAccessKey') {
+                throw new AccessDeniedError('Invalid access key');
+            }
+
             return { hello: 'world' };
         }
     }
@@ -48,4 +57,17 @@ test('Allows slashes in the endpoint url', async t => {
 
     t.is(res.status, 200);
     t.deepEqual(await res.json(), { error: null, result: { hello: 'world' } });
+});
+
+test('Gives error if AccessDeniedError is throw in action', async t => {
+    const res1 = await fetch('http://localhost:8057/api/test/requiresAuth?accessKey=myAccessKey');
+
+    t.is(res1.status, 200);
+    t.deepEqual(await res1.json(), { error: null, result: { hello: 'world' } });
+
+
+    const res2 = await fetch('http://localhost:8057/api/test/requiresAuth?accessKey=invalidaccesskey');
+
+    t.is(res2.status, 403);
+    t.deepEqual(await res2.json(), { error: 'Invalid access key', result: null });
 });

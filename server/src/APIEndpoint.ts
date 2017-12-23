@@ -11,6 +11,8 @@ export class APIEndpoint {
     private connected: boolean = false;
     private emitHandler: (eventName: string, args: any[]) => void;
 
+    public accessKey: string = null;
+
     actionExists(actionName: string) {
         const actionFunc = (<any>this)['$' + actionName];
         return actionFunc !== undefined;

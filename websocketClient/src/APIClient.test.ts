@@ -5,7 +5,7 @@ import {EventEmitter} from "./util/EventEmitter";
 test('Requests an endpoint connection', async t => {
     const mockEE = new EventEmitter();
 
-    mockEE.on('connectToEndpoint', (endpointName: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
+    mockEE.on('connectToEndpoint', (endpointName: string, accessKey: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
         t.is(endpointName, 'testep');
         cb(null, 'epcid');
     });
@@ -19,10 +19,27 @@ test('Requests an endpoint connection', async t => {
     t.is(apiEndpointClient.endpointConnectionId, 'epcid');
 });
 
+test('Passes accessKey when requesting an endpoint connection', async t => {
+    const mockEE = new EventEmitter();
+
+    mockEE.on('connectToEndpoint', (endpointName: string, accessKey: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
+        t.is(accessKey, 'myAccessKey');
+        cb(null, 'epcid');
+    });
+
+    const apiClient = new APIClient('');
+
+    setTimeout(() => mockEE.emit('serverReady'), 10);
+    await apiClient.mockSocketConnect(mockEE);
+
+    const apiEndpointClient = await apiClient.connectToEndpoint('testep', 'myAccessKey');
+    t.is(apiEndpointClient.endpointConnectionId, 'epcid');
+});
+
 test('Throws if endpoint connection response contains an error', async t => {
     const mockEE = new EventEmitter();
 
-    mockEE.on('connectToEndpoint', (endpointName: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
+    mockEE.on('connectToEndpoint', (endpointName: string, accessKey: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
         t.is(endpointName, 'testep');
         cb('some error', null);
     });
@@ -68,7 +85,7 @@ test('Throws if attempting to connect to an endpoint before connecting to a sock
 test('Throws timeout error if connectToEndpoint doesnt resolve within timeout', async t => {
     const mockEE = new EventEmitter();
 
-    mockEE.on('connectToEndpoint', (endpointName: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
+    mockEE.on('connectToEndpoint', (endpointName: string, accessKey: string, cb: (errorMessage: string, endpointConnectionId: string) => void) => {
         if (endpointName === 'fast') {
             return cb(null, 'epcid');
         }

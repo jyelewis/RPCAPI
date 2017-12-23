@@ -3,6 +3,7 @@ import {API} from "../../API";
 import {Express} from "express";
 import {InvalidTypeError, NotFoundError} from "./customErrors";
 import {convertParamType} from "./convertParamType";
+import {AccessDeniedError} from "../../errorTypes";
 
 export interface IWebAPIAccessMethodConfig {
     prefix?: string
@@ -46,6 +47,13 @@ export class WebAPIAccessMethod {
                         return;
                     }
 
+                    if (e instanceof AccessDeniedError) {
+                        res
+                            .status(403)
+                            .end(this.formatResult(e.message));
+                        return;
+                    }
+
                     res
                         .status(500)
                         .end(this.formatResult('Internal server error'));
@@ -73,6 +81,8 @@ export class WebAPIAccessMethod {
         if (!endpoint.actionExists(actionName)) {
             throw new NotFoundError(`Action '${actionName}' does not exist`);
         }
+
+        endpoint.accessKey = strParams.accessKey;
 
         await endpoint.callConnect();
 

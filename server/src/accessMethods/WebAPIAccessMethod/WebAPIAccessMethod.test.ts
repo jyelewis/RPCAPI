@@ -4,6 +4,7 @@ import {API} from '../../API'
 import {WebAPIAccessMethod} from './index'
 import {APIEndpoint} from "../../APIEndpoint";
 import {delay} from "../../util/delay";
+import {AccessDeniedError} from "../../errorTypes";
 
 test('Calls endpoint', async t => {
     let hasCalled: boolean = false;
@@ -130,4 +131,70 @@ test('Calls disconnect() in background after executing action', async t => {
     await delay(20);
 
     t.true(hasDisconnected);
+});
+
+test('Passes accessKey to endpoint before calling connect', async t => {
+    class TestEndpoint extends APIEndpoint {
+        connect() {
+            t.is(this.accessKey, 'testAccessKey');
+        }
+
+        $testFunc() {
+            t.is(this.accessKey, 'testAccessKey');
+            return { done: true };
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebAPIAccessMethod(testApi);
+
+    await accessMethod.processRequest('test', 'testFunc', { accessKey: 'testAccessKey' });
+});
+
+test('Calling access denied in connect causes processRequest to throw', async t => {
+    class TestEndpoint extends APIEndpoint {
+        connect() {
+            throw new AccessDeniedError('Test access denied');
+        }
+
+        $testFunc() {
+            return { done: true };
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebAPIAccessMethod(testApi);
+
+    try {
+        await accessMethod.processRequest('test', 'testFunc', {  });
+        t.fail()
+    } catch(e) {
+        t.is(e.message, 'Test access denied');
+        t.pass();
+    }
+});
+
+test('Calling access denied in action causes processRequest to throw', async t => {
+    class TestEndpoint extends APIEndpoint {
+        $testFunc() {
+            throw new AccessDeniedError('Test access denied');
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebAPIAccessMethod(testApi);
+
+    try {
+        await accessMethod.processRequest('test', 'testFunc', {  });
+        t.fail()
+    } catch(e) {
+        t.is(e.message, 'Test access denied');
+        t.pass();
+    }
 });

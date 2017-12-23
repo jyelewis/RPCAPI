@@ -5,6 +5,7 @@ import {IEndpointConnection} from "./types";
 import {EndpointConnectionIndex} from "./EndpointConnectionIndex";
 import {validateParamType} from "./validateParamType";
 import {createGuid} from "../../util/guid";
+import {AccessDeniedError} from "../../errorTypes";
 
 export class WebSocketAccessMethod extends EndpointConnectionIndex {
     public outputActionErrors: boolean = true;
@@ -28,8 +29,8 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
 
     handleNewConnection(socket: SocketIO.Socket) {
         socket.on('connectToEndpoint',
-            (endpointName: string, cb: (error: string, epcid: string) => void) => {
-                this.createNewSocketEndpoint(socket.id, endpointName).then(endpointConnection => {
+            (endpointName: string, accessKey: string, cb: (error: string, epcid: string) => void) => {
+                this.createNewSocketEndpoint(socket.id, endpointName, accessKey).then(endpointConnection => {
 
                     if (endpointConnection === null) {
                         cb(`Unable to create endpoint connection, '${endpointName}' does not exist`, null);
@@ -44,6 +45,11 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                     cb(null, endpointConnection.endpointConnectionId);
 
                 }).catch(e => {
+                    if (e instanceof AccessDeniedError) {
+                        cb(`Access denied: ${e.message}`, null);
+                        return;
+                    }
+
                     console.error(e);
                     cb(`Unable to create endpoint connection, '${endpointName}' threw an error while setting up`, null);
                 });
@@ -59,6 +65,8 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                             cb(e.message, null);
                         } else if (e instanceof InvalidTypeError) {
                             cb(e.message, null);
+                        } else if (e instanceof AccessDeniedError) {
+                            cb(`Access denied: ${e.message}`, null);
                         } else {
                             if (this.outputActionErrors) {
                                 console.error(e);
@@ -81,7 +89,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
         socket.emit('serverReady');
     }
 
-    async createNewSocketEndpoint(socketId: string, endpointName: string): Promise<IEndpointConnection> {
+    async createNewSocketEndpoint(socketId: string, endpointName: string, accessKey?: string): Promise<IEndpointConnection> {
         const endpoint = this.api.getEndpoint(endpointName);
         if (endpoint === null) {
             return null;
@@ -94,6 +102,8 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
         };
 
         this.addEndpointConnection(newEndpointConnection);
+
+        endpoint.accessKey = accessKey;
 
         await newEndpointConnection.endpoint.callConnect();
 
@@ -126,7 +136,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
         this.removeEndpointConnectionById(endpointConnectionId);
     }
 
-    async callEndpointAction(socketId: string, endpointConnectionId: string, actionName: string, params: any): Promise<any> {
+    async callEndpointAction(socketId: string, endpointConnectionId: string, actionName: string, params: any = {}): Promise<any> {
         const endpointConnection = this.getEndpointConnectionById(endpointConnectionId);
         if (endpointConnection === undefined) {
             throw new NotFoundError(`endpointConnection '${endpointConnectionId}' does not exist, has it been closed?`);

@@ -7,6 +7,7 @@ import * as socketio from "socket.io";
 import * as ioClient from 'socket.io-client';
 import {APIEndpoint} from "../../APIEndpoint";
 import {API} from "../../API";
+import {AccessDeniedError} from "../../errorTypes";
 
 let socketAM: WebSocketAccessMethod;
 let server: http.Server;
@@ -23,6 +24,10 @@ test.before(() => {
 
         $sayHello() {
             return { hello: 'world' };
+        }
+
+        $accessDenied() {
+            throw new AccessDeniedError('Test access denied');
         }
 
         $addParams = { a: 'number', b: 'number' };
@@ -43,9 +48,16 @@ test.before(() => {
         }
     }
 
+    class TestThrowingEndpoint extends APIEndpoint {
+        connect() {
+            throw new AccessDeniedError();
+        }
+    }
+
     const testAPI = new API();
     testAPI.registerEndpoint('test', TestEndpoint);
     testAPI.registerEndpoint('test2', TestEndpoint2);
+    testAPI.registerEndpoint('throws', TestThrowingEndpoint);
 
     const app = express();
     server = new http.Server(app);
@@ -86,7 +98,7 @@ test('Returns error when trying to connect to endpoint that doesnt exist', async
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'doesntExist', (error: string) => {
+            connection.emit('connectToEndpoint', 'doesntExist', undefined, (error: string) => {
                 t.is(error, 'Unable to create endpoint connection, \'doesntExist\' does not exist');
                 resolve();
             });
@@ -100,7 +112,7 @@ test('Gets endpoint conenction ID when connected to endpoint', async t => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
                 resolve();
@@ -115,7 +127,7 @@ test('Calls action and gets return value', async t => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
 
@@ -135,7 +147,7 @@ test('Sends NotFoundError if action doesnt exist', async t => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
 
@@ -155,7 +167,7 @@ test('Sends InvalidTypeError if types are invalid', async t => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
 
@@ -175,7 +187,7 @@ test('Sends Internal server error if action throws', async t => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
 
@@ -190,12 +202,47 @@ test('Sends Internal server error if action throws', async t => {
     });
 });
 
+test('Sends AccessDeniedError if action throws AccessDeniedError', async t => {
+    return new Promise(resolve => {
+        const connection = ioClient('http://localhost:8056/');
+        connection.on('serverReady', () => {
+
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
+                t.falsy(error);
+                t.truthy(epcid);
+
+                connection.emit('callEndpointFunction', epcid, 'accessDenied', {}, (error: string, res: any) => {
+                    t.is(error, 'Access denied: Test access denied');
+                    t.falsy(res);
+
+                    resolve();
+                });
+            });
+        });
+    });
+});
+
+test('Sends AccessDeniedError if endpoint connect throws AccessDeniedError', async t => {
+    return new Promise(resolve => {
+        const connection = ioClient('http://localhost:8056/');
+        connection.on('serverReady', () => {
+
+            connection.emit('connectToEndpoint', 'throws', undefined, (error: string, epcid: string) => {
+                t.is(error, 'Access denied: Access denied');
+                t.falsy(epcid);
+
+                resolve();
+            });
+        });
+    });
+});
+
 test('Calls disconenct() on the endpoint when client asks to disconnect endpoint', async t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
 
@@ -217,7 +264,7 @@ test('Calls disconnect() on all endpoints when client socket conenction is lost'
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
 
-            connection.emit('connectToEndpoint', 'test2', (error: string, epcid: string) => {
+            connection.emit('connectToEndpoint', 'test2', undefined, (error: string, epcid: string) => {
                 t.falsy(error);
                 t.truthy(epcid);
 
