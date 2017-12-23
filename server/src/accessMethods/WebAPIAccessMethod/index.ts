@@ -49,7 +49,7 @@ export class WebAPIAccessMethod {
 
                     if (e instanceof AccessDeniedError) {
                         res
-                            .status(403)
+                            .status(401)
                             .end(this.formatResult(e.message));
                         return;
                     }

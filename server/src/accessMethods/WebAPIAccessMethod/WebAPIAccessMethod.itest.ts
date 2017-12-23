@@ -68,6 +68,6 @@ test('Gives error if AccessDeniedError is throw in action', async t => {
 
     const res2 = await fetch('http://localhost:8057/api/test/requiresAuth?accessKey=invalidaccesskey');
 
-    t.is(res2.status, 403);
+    t.is(res2.status, 401);
     t.deepEqual(await res2.json(), { error: 'Invalid access key', result: null });
 });
