@@ -9,11 +9,17 @@ test('Add basic numbers', async t => {
     t.deepEqual(value, { value: 3 });
 });
 
-test('Adds larger numbers', async t => {
+test('Throws adding larger numbers (ActionError)', async t => {
     const calc = new CalculatorEndpoint();
     await calc.callConnect();
-    const value = await calc.callAction('add',{ a: 1000, b: 87652 });
-    t.deepEqual(value, { value: 88652 });
+
+    try {
+        await calc.callAction('add',{ a: 1000, b: 87652 });
+        t.fail();
+    } catch(e) {
+        t.is(e.message, 'Add cannot perform operations greater than 10000');
+        t.pass();
+    }
 });
 
 test('Special adds using numbers', async t => {

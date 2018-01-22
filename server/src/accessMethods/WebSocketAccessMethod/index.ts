@@ -5,7 +5,10 @@ import {IEndpointConnection} from "./types";
 import {EndpointConnectionIndex} from "./EndpointConnectionIndex";
 import {validateParamType} from "./validateParamType";
 import {createGuid} from "../../util/guid";
-import {AccessDeniedError} from "../../errorTypes";
+import {AccessDeniedError, ActionError} from "../../errorTypes";
+
+import * as debugFactory from 'debug'
+const debug = debugFactory('rpcapi:WebSocketAccessMethod');
 
 export class WebSocketAccessMethod extends EndpointConnectionIndex {
     public outputActionErrors: boolean = true;
@@ -21,6 +24,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
         if (this.io) {
             throw new Error('bind() has already been called');
         }
+        debug('bind()');
 
         this.io = io;
 
@@ -28,11 +32,16 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
     }
 
     handleNewConnection(socket: SocketIO.Socket) {
+        debug(`New connection - id: '${socket.id}', waiting on connectToEndpoint event...`);
+
         socket.on('connectToEndpoint',
             (endpointName: string, accessKey: string, cb: (error: string, epcid: string) => void) => {
+                debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}'`);
+
                 this.createNewSocketEndpoint(socket.id, endpointName, accessKey).then(endpointConnection => {
 
                     if (endpointConnection === null) {
+                        debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - failed, endpoint does not exist`);
                         cb(`Unable to create endpoint connection, '${endpointName}' does not exist`, null);
                         return;
                     }
@@ -42,15 +51,17 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                         socket.emit(`emitEvent.${endpointConnection.endpointConnectionId}`, eventName, args);
                     });
 
+                    debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - connectionId: '${endpointConnection.endpointConnectionId}'`);
                     cb(null, endpointConnection.endpointConnectionId);
 
                 }).catch(e => {
                     if (e instanceof AccessDeniedError) {
+                        debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - failed, access denied`);
                         cb(`Access denied: ${e.message}`, null);
                         return;
                     }
 
-                    console.error(e);
+                    debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - failed, %o`, e);
                     cb(`Unable to create endpoint connection, '${endpointName}' threw an error while setting up`, null);
                 });
             }
@@ -59,33 +70,56 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
         socket.on('callEndpointFunction',
             (endpointConnectionId: string, actionName: string, params: any, cb: (error: string, res: any) => void) => {
                 this.callEndpointAction(socket.id, endpointConnectionId, actionName, params)
-                    .then((retVal: any) => cb(null, retVal))
+                    .then((retVal: any) => {
+                        debug(`epcid: '${endpointConnectionId}' called ${actionName} %o: %o`, params, retVal);
+                        cb(null, retVal);
+                    })
                     .catch((e: Error) => {
                         if (e instanceof NotFoundError) {
+                            debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: NotFound - ${e.message}`);
                             cb(e.message, null);
-                        } else if (e instanceof InvalidTypeError) {
-                            cb(e.message, null);
-                        } else if (e instanceof AccessDeniedError) {
-                            cb(`Access denied: ${e.message}`, null);
-                        } else {
-                            if (this.outputActionErrors) {
-                                console.error(e);
-                            }
-                            cb('Internal server error', null);
+                            return;
                         }
+
+                        if (e instanceof InvalidTypeError) {
+                            debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: InvalidType - ${e.message}`);
+                            cb(e.message, null);
+                            return;
+                        }
+
+                        if (e instanceof AccessDeniedError) {
+                            debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: AccessDenied - ${e.message}`);
+                            cb(`Access denied: ${e.message}`, null);
+                            return;
+                        }
+
+                        if (e instanceof ActionError) {
+                            debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: ActionError - ${e.message}`);
+                            cb(e.message, null);
+                            return;
+                        }
+
+                        if (this.outputActionErrors) {
+                            console.error(e);
+                        }
+                        debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: Unknown error - ${e.message}`);
+                        cb('Internal server error', null);
                     });
             }
         );
 
         socket.on('disconnect', () => {
+            debug(`Socket '${socket.id}' disconnected, disconnecting all endpoints`);
             this.disconnectAllSocketEndpoints(socket.id);
         });
 
         socket.on('disconnectEndpointConnection', (endpointConnectionId: string) => {
+            debug(`disconnectEndpointConnection('${socket.id}', '${endpointConnectionId}')`);
             this.disconnectEndpointConnection(socket.id, endpointConnectionId);
         });
 
         //Tell the client we are ready to receive messages
+        debug(`${socket.id} - Server ready`);
         socket.emit('serverReady');
     }
 

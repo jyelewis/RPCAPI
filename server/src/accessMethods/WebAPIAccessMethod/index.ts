@@ -3,7 +3,10 @@ import {API} from "../../API";
 import {Express} from "express";
 import {InvalidTypeError, NotFoundError} from "./customErrors";
 import {convertParamType} from "./convertParamType";
-import {AccessDeniedError} from "../../errorTypes";
+import {AccessDeniedError, ActionError} from "../../errorTypes";
+
+import * as debugFactory from 'debug'
+const debug = debugFactory('rpcapi:WebAPIAccessMethod');
 
 export interface IWebAPIAccessMethodConfig {
     prefix?: string
@@ -31,9 +34,11 @@ export class WebAPIAccessMethod {
 
             this.processRequest(endpointName, actionName, req.query)
                 .then((result) => {
+                    debug(`Request: ${endpointName}/${actionName} %o: %o`, req.query, result);
                     res.end(this.formatResult(null, result));
                 }).catch((e) => {
                     if (e instanceof NotFoundError) {
+                        debug(`Request: ${endpointName}/${actionName} %o: NotFound - ${e.message}`, req.query);
                         res
                             .status(404)
                             .end(this.formatResult(e.message));
@@ -41,6 +46,7 @@ export class WebAPIAccessMethod {
                     }
 
                     if (e instanceof InvalidTypeError) {
+                        debug(`Request: ${endpointName}/${actionName} %o: InvalidType - ${e.message}`, req.query);
                         res
                             .status(400)
                             .end(this.formatResult(e.message));
@@ -48,8 +54,17 @@ export class WebAPIAccessMethod {
                     }
 
                     if (e instanceof AccessDeniedError) {
+                        debug(`Request: ${endpointName}/${actionName} %o: AccessDenied - ${e.message}`, req.query);
                         res
                             .status(401)
+                            .end(this.formatResult(e.message));
+                        return;
+                    }
+
+                    if (e instanceof ActionError) {
+                        debug(`Request: ${endpointName}/${actionName} %o: ActionError - ${e.message}`, req.query);
+                        res
+                            .status(500)
                             .end(this.formatResult(e.message));
                         return;
                     }
@@ -61,6 +76,7 @@ export class WebAPIAccessMethod {
                     if (this.outputActionErrors) {
                         console.error(e);
                     }
+                    debug(`Request: ${endpointName}/${actionName} %o: Unknown error - ${e.message}`, req.query);
                 });
         });
     }

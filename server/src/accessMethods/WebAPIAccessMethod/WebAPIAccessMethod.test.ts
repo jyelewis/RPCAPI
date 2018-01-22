@@ -4,7 +4,7 @@ import {API} from '../../API'
 import {WebAPIAccessMethod} from './index'
 import {APIEndpoint} from "../../APIEndpoint";
 import {delay} from "../../util/delay";
-import {AccessDeniedError} from "../../errorTypes";
+import {AccessDeniedError, ActionError} from "../../errorTypes";
 
 test('Calls endpoint', async t => {
     let hasCalled: boolean = false;
@@ -153,14 +153,10 @@ test('Passes accessKey to endpoint before calling connect', async t => {
     await accessMethod.processRequest('test', 'testFunc', { accessKey: 'testAccessKey' });
 });
 
-test('Calling access denied in connect causes processRequest to throw', async t => {
+test('Calling ActionError in endpoint passes out error message', async t => {
     class TestEndpoint extends APIEndpoint {
-        connect() {
-            throw new AccessDeniedError('Test access denied');
-        }
-
         $testFunc() {
-            return { done: true };
+            throw new ActionError('Hello! I am an error');
         }
     }
 
@@ -173,7 +169,7 @@ test('Calling access denied in connect causes processRequest to throw', async t 
         await accessMethod.processRequest('test', 'testFunc', {  });
         t.fail()
     } catch(e) {
-        t.is(e.message, 'Test access denied');
+        t.is(e.message, 'Hello! I am an error');
         t.pass();
     }
 });

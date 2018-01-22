@@ -1,5 +1,6 @@
 
 import {APIEndpoint} from "../APIEndpoint";
+import {ActionError} from "../errorTypes";
 
 export class CalculatorEndpoint extends APIEndpoint {
     private sendAdds: boolean = false;
@@ -16,6 +17,11 @@ export class CalculatorEndpoint extends APIEndpoint {
     public $addParams = { a: 'number', b: 'number' };
     $add({a, b}: {a: number, b: number}) {
         const value = a + b;
+
+        if (value > 10000) {
+            throw new ActionError('Add cannot perform operations greater than 10000');
+        }
+
         if (this.sendAdds) {
             this.emit('addCalculationPerformed', value);
         }

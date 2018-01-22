@@ -8,4 +8,4 @@ export { APIEndpoint } from './src/APIEndpoint'
 export { WebAPIAccessMethod } from './src/accessMethods/WebAPIAccessMethod'
 export { WebSocketAccessMethod } from './src/accessMethods/WebSocketAccessMethod'
 
-export { AccessDeniedError } from './src/errorTypes'
+export { AccessDeniedError, ActionError } from './src/errorTypes'

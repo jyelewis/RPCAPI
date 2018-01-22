@@ -4,7 +4,7 @@ import {API} from '../../API'
 import {WebSocketAccessMethod} from './index'
 import {APIEndpoint} from "../../APIEndpoint";
 import {delay} from "../../util/delay";
-import {AccessDeniedError} from "../../errorTypes";
+import {AccessDeniedError, ActionError} from "../../errorTypes";
 
 test('Calls connect() when new endpoint is created', async t => {
     let hasCalled: boolean = false;
@@ -469,6 +469,29 @@ test('Throwing AccessDeniedError returns error when calling action', async t => 
         t.fail();
     } catch(e) {
         t.is(e.message, 'Test access denied');
+        t.pass();
+    }
+});
+
+test('Throwing AccessDeniedError returns error when calling action', async t => {
+    class TestEndpoint extends APIEndpoint {
+        $test() {
+            throw new ActionError('Hello test error');
+        }
+    }
+
+    const testApi = new API();
+    testApi.registerEndpoint('test', TestEndpoint);
+
+    const accessMethod = new WebSocketAccessMethod(testApi);
+
+    const ep = await accessMethod.createNewSocketEndpoint('mySocketID', 'test');
+
+    try {
+        await accessMethod.callEndpointAction('mySocketID', ep.endpointConnectionId, 'test');
+        t.fail();
+    } catch(e) {
+        t.is(e.message, 'Hello test error');
         t.pass();
     }
 });
