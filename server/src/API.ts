@@ -16,6 +16,7 @@ export interface IAPIListenConfig {
 export class API {
     //Server stuff
     public server: http.Server = null;
+    public customCreateEndpointInstance: (epClass: typeof APIEndpoint) => APIEndpoint = null;
 
     private endpoints: { [key: string]: new () => APIEndpoint } = Object.create(null);
     public registerEndpoint(endpointName: string, endpointClass: new () => APIEndpoint) {
@@ -32,8 +33,13 @@ export class API {
     public getEndpoint(endpointName: string): APIEndpoint {
         endpointName = endpointName.toLowerCase();
 
-        if (this.endpoints[endpointName]) {
-            return new (this.endpoints[endpointName])();
+        const endpointClass = this.endpoints[endpointName];
+        if (endpointClass) {
+            if (typeof this.customCreateEndpointInstance === 'function') {
+                return this.customCreateEndpointInstance(endpointClass);
+            }
+
+            return new (endpointClass)();
         }
 
         return null;

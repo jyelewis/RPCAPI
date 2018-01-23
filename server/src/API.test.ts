@@ -28,6 +28,27 @@ test('Returns null if endpoint doesnt exist', async t => {
     t.is(null, api.getEndpoint('doesntExist'));
 });
 
+test('Allows using a custom ep constructor', async t => {
+    class TestEndpoint1 extends APIEndpoint {
+        public setMe: number = 0;
+    }
+
+    const api = new API();
+
+    api.customCreateEndpointInstance = function(epClass: typeof APIEndpoint) {
+        const ep = new epClass();
+        (<TestEndpoint1>ep).setMe = 1;
+        return ep;
+    };
+
+
+    api.registerEndpoint('test1', TestEndpoint1);
+
+    const inst1 = <TestEndpoint1>api.getEndpoint('test1');
+    t.true(inst1 instanceof TestEndpoint1);
+    t.is(inst1.setMe, 1);
+});
+
 test('Endpoint names are case insensitive', async t => {
     class TestEndpoint extends APIEndpoint {}
 
