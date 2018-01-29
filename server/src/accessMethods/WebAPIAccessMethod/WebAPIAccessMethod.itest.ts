@@ -71,3 +71,23 @@ test('Gives error if AccessDeniedError is throw in action', async t => {
     t.is(res2.status, 401);
     t.deepEqual(await res2.json(), { error: 'Invalid access key', result: null });
 });
+
+test('Allows authenticating via Bearer header', async t => {
+    const res1 = await fetch('http://localhost:8057/api/test/requiresAuth', {
+        headers: {
+            "Authorization": "Bearer myAccessKey"
+        }
+    });
+
+    t.is(res1.status, 200);
+    t.deepEqual(await res1.json(), { error: null, result: { hello: 'world' } });
+
+    const res2 = await fetch('http://localhost:8057/api/test/requiresAuth', {
+        headers: {
+            "Authorization": "Bearer invalidaccesskey"
+        }
+    });
+
+    t.is(res2.status, 401);
+    t.deepEqual(await res2.json(), { error: 'Invalid access key', result: null });
+});

@@ -20,7 +20,7 @@ export class WebAPIAccessMethod {
     public readonly prefix: string;
     private readonly api: API;
 
-            public outputActionErrors: boolean = true;
+    public outputActionErrors: boolean = true;
 
     constructor(api: API, config: IWebAPIAccessMethodConfig = defaultConfig) {
         this.prefix = config.prefix || defaultConfig.prefix;
@@ -32,7 +32,20 @@ export class WebAPIAccessMethod {
             const endpointName = req.params.endpoint;
             const actionName = req.params.action;
 
-            this.processRequest(endpointName, actionName, req.query)
+            let authToken: string = null;
+            if (req.query.accessKey) {
+                authToken = req.query.accessKey
+            } else if (req.get('Authorization')) {
+                const authHeader = req.get('Authorization');
+                if (authHeader.startsWith('Bearer ')) {
+                    authToken = authHeader.substring('Bearer '.length);
+                }
+            }
+
+            //All responses are in json format
+            res.setHeader('Content-Type', 'application/json');
+
+            this.processRequest(endpointName, actionName, req.query, authToken)
                 .then((result) => {
                     debug(`Request: ${endpointName}/${actionName} %o: %o`, req.query, result);
                     res.end(this.formatResult(null, result));
@@ -88,7 +101,7 @@ export class WebAPIAccessMethod {
         });
     }
 
-    async processRequest(endpointName: string, actionName: string, strParams: any): Promise<any> {
+    async processRequest(endpointName: string, actionName: string, strParams: any, accessKey: string = null): Promise<any> {
         const endpoint = this.api.getEndpoint(endpointName);
         if (!endpoint) {
             throw new NotFoundError(`Endpoint '${endpointName}' does not exist`);
@@ -98,7 +111,7 @@ export class WebAPIAccessMethod {
             throw new NotFoundError(`Action '${actionName}' does not exist`);
         }
 
-        endpoint.accessKey = strParams.accessKey;
+        endpoint.accessKey = accessKey;
 
         await endpoint.callConnect();
 

@@ -16,10 +16,10 @@ export interface IAPIListenConfig {
 export class API {
     //Server stuff
     public server: http.Server = null;
-    public customCreateEndpointInstance: (epClass: typeof APIEndpoint) => APIEndpoint = null;
+    public customCreateEndpointInstance: (epClass: any) => APIEndpoint = null;
 
-    private endpoints: { [key: string]: new () => APIEndpoint } = Object.create(null);
-    public registerEndpoint(endpointName: string, endpointClass: new () => APIEndpoint) {
+    private endpoints: { [key: string]: any } = Object.create(null);
+    public registerEndpoint(endpointName: string, endpointClass: any) {
         endpointName = endpointName.toLowerCase();
 
         if (!isValidEndpointName(endpointName)) {

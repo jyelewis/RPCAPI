@@ -150,7 +150,7 @@ test('Passes accessKey to endpoint before calling connect', async t => {
 
     const accessMethod = new WebAPIAccessMethod(testApi);
 
-    await accessMethod.processRequest('test', 'testFunc', { accessKey: 'testAccessKey' });
+    await accessMethod.processRequest('test', 'testFunc', {}, 'testAccessKey');
 });
 
 test('Calling ActionError in endpoint passes out error message', async t => {
