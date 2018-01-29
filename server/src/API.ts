@@ -2,6 +2,7 @@ import {APIEndpoint} from "./APIEndpoint";
 
 //For built in server
 import * as express from 'express'
+import * as helmet from 'helmet'
 import * as socketio from 'socket.io'
 import * as http from 'http'
 import {IWebAPIAccessMethodConfig, WebAPIAccessMethod} from "./accessMethods/WebAPIAccessMethod/index";
@@ -50,6 +51,7 @@ export class API {
     public listen(port: number, options: IAPIListenConfig = {}): Promise<void> {
         return new Promise(resolve => {
             const app = express();
+            app.use(helmet());
             this.server = new http.Server(app);
             const io = socketio(this.server);
 
