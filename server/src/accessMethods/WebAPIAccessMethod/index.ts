@@ -77,7 +77,7 @@ export class WebAPIAccessMethod {
                     if (e instanceof ActionError) {
                         debug(`Request: ${endpointName}/${actionName} %o: ActionError - ${e.message}`, req.query);
                         res
-                            .status(500)
+                            .status(400)
                             .end(this.formatResult(e.message));
                         return;
                     }
