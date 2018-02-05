@@ -1,5 +1,6 @@
 import {APIEndpointClient} from "../APIEndpointClient";
 import {delay} from "../util/delay";
+import {MockActionError} from './MockActionError';
 
 export interface IMockAPIEndpointClientMockings {
     actions: {
@@ -32,6 +33,10 @@ export class MockAPIEndpointClient extends APIEndpointClient {
         try {
             result = await resolveValue(this.mockings.actions[actionName](args));
         } catch(e) {
+            if (e instanceof MockActionError) {
+                throw e;
+            }
+
             if (this.printMockFunctionErrors) {
                 console.error(e);
             }

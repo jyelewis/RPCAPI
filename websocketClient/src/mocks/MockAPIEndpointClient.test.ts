@@ -1,6 +1,7 @@
 import test from 'ava'
 import {MockAPIEndpointClient} from "./MockAPIEndpointClient";
 import {delay} from "../util/delay";
+import {MockActionError} from './MockActionError';
 
 test('Calls mock endpoint and returns value', async t => {
     const mockAPIEndpointClient = new MockAPIEndpointClient({
@@ -112,6 +113,24 @@ test('Throws if action in mocks has an error', async t => {
         t.fail();
     } catch(e) {
         t.is(e.message, 'Internal server error (While mocking action \'throwsError\')');
+        t.pass();
+    }
+});
+
+test('Throws if action in mocks throws MockActionError', async t => {
+    const mockAPIEndpointClient = new MockAPIEndpointClient({
+        actions: {
+            throwsError: () => {
+                throw new MockActionError('Test error');
+            }
+        }
+    });
+
+    try {
+        await mockAPIEndpointClient.callAction('throwsError');
+        t.fail();
+    } catch(e) {
+        t.is(e.message, 'Test error');
         t.pass();
     }
 });

@@ -4,13 +4,13 @@ import {IBasicSocket} from "./IBasicSocket";
 import {ConnectionTimeoutError} from "./errorTypes";
 
 export class APIClient {
-    private readonly socketAddr: string;
+    public serverAddress: string;
     protected socket: IBasicSocket;
     public timeout: number = 10 * 1000;
     public accessKey: string; //Used as a default when connecting to an endpoint
 
-    constructor(socketAddr: string) {
-        this.socketAddr = socketAddr;
+    constructor(serverAddress?: string) {
+        this.serverAddress = serverAddress;
     }
 
     async connect() {
@@ -18,7 +18,7 @@ export class APIClient {
             throw new Error('Already connected to server');
         }
 
-        this.socket = io(this.socketAddr);
+        this.socket = io(this.serverAddress);
 
         await this.waitForServerReady();
     }
