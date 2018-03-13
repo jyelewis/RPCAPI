@@ -22,7 +22,7 @@ test.before('Setup server', async t => {
 });
 
 test('Serves webapi requests from built in server', async t => {
-    const response = await fetch('http://localhost:8258/api/test/test');
+    const response = await fetch('http://localhost:8258/api/test/test', { method: 'post' });
     //console.log(response);
     t.is(response.status, 200);
     t.deepEqual(await response.json(), { error: null, result: { hello: 'world' } });

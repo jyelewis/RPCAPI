@@ -259,18 +259,24 @@ See implementation details below at [Pushing to the client (implementation)](#pu
 ### Accessing actions via the web api
 By default the `WebAPIAccessMethod` binds to the path `/api`
 This can be changed by passing in the `prefix` configuration parameter.
+
+All actions must be called using the 'post' http method.
+parameters can either be given as json or in a url encoded format
+
 ```javascript
 const webApi = new rpcapi.WebAPIAccessMethod(api, { prefix: '/myApi' });
 ```
 
 Once the server is running, you can access actions directly by requesting the url
 ```
-/api/{endpoint name}/{action name}?param1={value1}&param2={value2}
+/api/{endpoint name}/{action name}
+param1={value1}&param2={value2}
 ```
 
 For example, an authentication action
 ```
-/api/login/authenticateUser?username=admin&password=Qwerty1
+/api/login/authenticateUser
+username=admin&password=Qwerty1
 ```
 
 When using the web api, values are automatically converted to the correct type (as specified in `${action}Params`)
@@ -279,7 +285,8 @@ Types are checked and the endpoint will return an error if the parameters are no
 If an action requires an object or array for a parameter, you can use JSON to provide this value
 For example
 ```
-/api/calculator/sumAll?values=[1, 2, 3, 4]
+/api/calculator/sumAll
+values=[1, 2, 3, 4]
 ```
 
 #### Web api limitations

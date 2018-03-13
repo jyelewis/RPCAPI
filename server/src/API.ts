@@ -3,11 +3,15 @@ import {APIEndpoint} from "./APIEndpoint";
 //For built in server
 import * as express from 'express'
 import * as helmet from 'helmet'
+import * as cors from 'cors';
 import * as socketio from 'socket.io'
 import * as http from 'http'
-import {IWebAPIAccessMethodConfig, WebAPIAccessMethod} from "./accessMethods/WebAPIAccessMethod/index";
-import {WebSocketAccessMethod} from "./accessMethods/WebSocketAccessMethod/index";
+import {IWebAPIAccessMethodConfig, WebAPIAccessMethod} from "./accessMethods/WebAPIAccessMethod";
+import {WebSocketAccessMethod} from "./accessMethods/WebSocketAccessMethod";
 import {isValidEndpointName} from "./isValidEndpointName";
+import bodyParser = require('body-parser');
+import {Response} from 'express-serve-static-core';
+import {NextFunction, Request} from "express";
 
 export interface IAPIListenConfig {
     webApi?: IWebAPIAccessMethodConfig,
@@ -52,6 +56,19 @@ export class API {
         return new Promise(resolve => {
             const app = express();
             app.use(helmet());
+            app.use(cors());
+            app.use(bodyParser.json());                // to support JSON-encoded bodies
+            app.use(bodyParser.urlencoded({    // to support URL-encoded bodies
+                extended: true
+            }));
+
+            app.use((err: Error, req: Request, res: Response, next: NextFunction) => { // catchall error handler
+                res.status(500);
+                res.end('{"error":"Internal server error","result":null}');
+
+                console.error(err);
+            });
+
             this.server = new http.Server(app);
             const io = socketio(this.server);
 
