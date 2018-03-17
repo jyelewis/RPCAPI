@@ -14,18 +14,20 @@ export interface IWebAPIAccessMethodConfig {
 
 const defaultConfig = <IWebAPIAccessMethodConfig>{
     prefix: '/api',
-    outputActionErrors: false
+    outputActionErrors: true
 };
 
 export class WebAPIAccessMethod {
     public readonly prefix: string;
     private readonly api: API;
 
-    public outputActionErrors: boolean = true;
+    public outputActionErrors: boolean;
 
     constructor(api: API, config: IWebAPIAccessMethodConfig = defaultConfig) {
-        this.prefix = config.prefix || defaultConfig.prefix;
-        this.outputActionErrors = config.outputActionErrors || defaultConfig.outputActionErrors;
+        config = Object.assign({}, defaultConfig, config);
+
+        this.prefix = config.prefix;
+        this.outputActionErrors = config.outputActionErrors;
         this.api = api;
     }
 
