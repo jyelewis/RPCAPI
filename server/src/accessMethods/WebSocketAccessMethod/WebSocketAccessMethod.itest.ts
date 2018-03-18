@@ -1,5 +1,4 @@
 import test from 'ava';
-
 import {WebSocketAccessMethod} from './index'
 import * as express from "express";
 import * as http from "http";
@@ -8,6 +7,7 @@ import * as ioClient from 'socket.io-client';
 import {APIEndpoint} from "../../APIEndpoint";
 import {API} from "../../API";
 import {AccessDeniedError} from "../../errorTypes";
+import * as SocketIO from 'socket.io';
 
 let socketAM: WebSocketAccessMethod;
 let server: http.Server;

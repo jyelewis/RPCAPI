@@ -22,26 +22,26 @@
     "server"
   ],
   "devDependencies": {
-    "ava": "^0.24.0",
-    "node-fetch": "^1.7.3",
-    "nyc": "^11.3.0",
+    "ava": "^0.25.0",
+    "node-fetch": "^2.1.1",
+    "nyc": "^11.6.0",
     "socket.io-client": "^2.0.4",
-    "typescript": "^2.6.2"
+    "typescript": "^2.7.2"
   },
   "dependencies": {
     "@types/cors": "^2.8.3",
     "@types/debug": "^0.0.30",
-    "@types/express": "^4.0.39",
+    "@types/express": "^4.11.1",
     "@types/helmet": "^0.0.37",
     "@types/node-fetch": "^1.6.7",
-    "@types/socket.io": "^1.4.31",
+    "@types/socket.io": "^1.4.32",
     "@types/socket.io-client": "^1.4.32",
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
     "coveralls": "^3.0.0",
     "debug": "^3.1.0",
-    "express": "^4.16.2",
-    "helmet": "^3.10.0",
+    "express": "^4.16.3",
+    "helmet": "^3.12.0",
     "socket.io": "^2.0.4"
   },
   "author": "Jye Lewis",

@@ -6,7 +6,7 @@ import {EndpointConnectionIndex} from "./EndpointConnectionIndex";
 import {validateParamType} from "./validateParamType";
 import {createGuid} from "../../util/guid";
 import {AccessDeniedError, ActionError} from "../../errorTypes";
-
+import * as SocketIO from 'socket.io';
 import * as debugFactory from 'debug'
 const debug = debugFactory('rpcapi:WebSocketAccessMethod');
 
