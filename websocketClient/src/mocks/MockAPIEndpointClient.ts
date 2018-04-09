@@ -5,7 +5,8 @@ import {MockActionError} from './MockActionError';
 export interface IMockAPIEndpointClientMockings {
     actions: {
         [actionName: string]: (args: any, emit: (eventName: string, ...args: any[]) => void) => any | Promise<any>
-    }
+    },
+    disconnect?: () => void
 }
 
 export class MockAPIEndpointClient extends APIEndpointClient {
@@ -15,7 +16,12 @@ export class MockAPIEndpointClient extends APIEndpointClient {
     //Stubs to override methods in APIEndpointClass
     protected registerSocketListeners() {}
     protected unregisterSocketListeners() {}
-    disconnect() {}
+
+    disconnect() {
+        if (this.mockings.disconnect) {
+            this.mockings.disconnect();
+        }
+    }
 
     constructor(mockings: IMockAPIEndpointClientMockings) {
         super(null as any, '');

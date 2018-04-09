@@ -174,3 +174,15 @@ test('Throws if action in mocks does not return an object', async t => {
     }
 });
 
+test('Calls disconnect function when connection is disconnected', async t => {
+    const mockAPIEndpointClient = new MockAPIEndpointClient({
+        actions: {
+
+        },
+        disconnect() {
+            t.pass();
+        }
+    });
+
+    mockAPIEndpointClient.disconnect();
+});
