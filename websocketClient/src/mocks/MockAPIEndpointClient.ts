@@ -4,7 +4,7 @@ import {MockActionError} from './MockActionError';
 
 export interface IMockAPIEndpointClientMockings {
     actions: {
-        [actionName: string]: (args: any) => any | Promise<any>
+        [actionName: string]: (args: any, emit: (eventName: string, ...args: any[]) => void) => any | Promise<any>
     }
 }
 
@@ -31,7 +31,9 @@ export class MockAPIEndpointClient extends APIEndpointClient {
 
         let result: any = null;
         try {
-            result = await resolveValue(this.mockings.actions[actionName](args));
+            result = await resolveValue(
+                this.mockings.actions[actionName](args, this.simulateServerSentEvent.bind(this))
+            );
         } catch(e) {
             if (e instanceof MockActionError) {
                 throw e;

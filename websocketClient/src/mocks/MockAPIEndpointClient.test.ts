@@ -22,7 +22,6 @@ test('Calls mock endpoint and returns value', async t => {
     t.deepEqual(result2, { a: 2 });
 });
 
-
 test('Passes args to mocked endpoint', async t => {
     const mockAPIEndpointClient = new MockAPIEndpointClient({
         actions: {
@@ -79,6 +78,28 @@ test('Passes args with server sent events', async t => {
     });
 
     mockAPIEndpointClient.simulateServerSentEvent('testEvent', 123, 456);
+
+    await delay(10); //Give event emitter time
+});
+
+test('Allows creating server sent events from mock action', async t => {
+    t.plan(2);
+
+    const mockAPIEndpointClient = new MockAPIEndpointClient({
+        actions: {
+            sendEvent: (params, emit) => {
+                setTimeout(() => emit('myEvent', 1, 'a'), 1);
+                return { a: 1 };
+            }
+        }
+    });
+
+    mockAPIEndpointClient.on('myEvent', (a: number, b: string) => {
+        t.is(a, 1);
+        t.is(b, 'a');
+    });
+
+    await mockAPIEndpointClient.callAction('sendEvent');
 
     await delay(10); //Give event emitter time
 });
