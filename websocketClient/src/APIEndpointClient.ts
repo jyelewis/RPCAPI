@@ -1,14 +1,15 @@
-
 import {IBasicSocket} from "./IBasicSocket";
 import {EventEmitter, eventHandler} from "./util/EventEmitter";
 import {ConnectionTimeoutError} from "./errorTypes";
 
 export class APIEndpointClient {
-    private socket: IBasicSocket;
     public readonly endpointConnectionId: string;
-    private readonly eventEmitter: EventEmitter;
-    private emitEventHandler: (eventName: string, args: any) => void;
     public timeout: number = 10 * 1000;
+    public isDisconnected = false;
+
+    private socket: IBasicSocket;
+    private readonly eventEmitter: EventEmitter;
+    private readonly emitEventHandler: (eventName: string, args: any) => void;
 
     constructor(socket: IBasicSocket, endpointConnectionId: string) {
         this.socket = socket;
@@ -35,6 +36,10 @@ export class APIEndpointClient {
     }
 
     async callAction<T = any>(actionName: string, args: any = {}): Promise<T> {
+        if (this.isDisconnected) {
+            throw new Error('Cannot callAction() on disconnected endpoint');
+        }
+
         return new Promise<any>((resolve, reject) => {
             let hasTimedOut = false;
             const timeoutTimer = setTimeout(() => {
@@ -70,5 +75,6 @@ export class APIEndpointClient {
     disconnect() {
         this.unregisterSocketListeners();
         this.socket.emit('disconnectEndpointConnection', this.endpointConnectionId);
+        this.isDisconnected = true;
     }
 }

@@ -8,7 +8,8 @@ api.connect().then(() => {
     window.apiClientExamples = {
         basic: basicExample,
         push: pushExample,
-        restricted: restrictedExample
+        restricted: restrictedExample,
+        reconnect: reconnectExample
     };
 
     console.log('Connected!');
@@ -59,6 +60,28 @@ async function pushExample() {
         console.log('Calling action stopPushing on server to request they stop telling us the time every second');
         pushToClientEndpoint.callAction('stopPushing').catch(console.error);
     }, 10 * 1000);
+}
+
+async function reconnectExample() {
+    async function calcResult(calculatorEndpoint) {
+        const addResult = await calculatorEndpoint.callAction('add', { a: 1, b: 2 });
+        console.log('1 + 2 =', addResult.value);
+    }
+
+    const initialEndpoint = await api.connectToEndpoint('calculator');
+    await calcResult(initialEndpoint);
+
+    api.on('disconnect', () => {
+        console.log('Server disconnected');
+    });
+
+    api.on('reconnect', () => {
+        console.log('Server reconnected, re-executing calculation');
+
+        api.connectToEndpoint('calculator').then(reconnectedEndpoint => {
+            return calcResult(reconnectedEndpoint);
+        }).catch(console.error);
+    });
 }
 
 async function restrictedExample() {

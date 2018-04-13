@@ -1,4 +1,3 @@
-
 import {API} from "../../API";
 import {InvalidTypeError, NotFoundError} from "./customErrors";
 import {IEndpointConnection} from "./types";
@@ -6,8 +5,8 @@ import {EndpointConnectionIndex} from "./EndpointConnectionIndex";
 import {validateParamType} from "./validateParamType";
 import {createGuid} from "../../util/guid";
 import {AccessDeniedError, ActionError} from "../../errorTypes";
-import * as SocketIO from 'socket.io';
 import * as debugFactory from 'debug'
+import * as SocketIO from 'socket.io';
 const debug = debugFactory('rpcapi:WebSocketAccessMethod');
 
 export class WebSocketAccessMethod extends EndpointConnectionIndex {
@@ -139,9 +138,12 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
 
         endpoint.accessKey = accessKey;
 
-        //TODO: Clean up automatically if this fails? (we will currently leave a dead connection registered)
-        await newEndpointConnection.endpoint.callConnect();
-
+        // TODO: test this
+        try {
+            await newEndpointConnection.endpoint.callConnect();
+        } catch (e) {
+            this.removeEndpointConnectionById(newEndpointConnection.endpointConnectionId);
+        }
 
         return newEndpointConnection;
     }
