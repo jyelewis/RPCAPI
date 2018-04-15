@@ -114,7 +114,12 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
 
         socket.on('disconnectEndpointConnection', (endpointConnectionId: string) => {
             debug(`disconnectEndpointConnection('${socket.id}', '${endpointConnectionId}')`);
-            this.disconnectEndpointConnection(socket.id, endpointConnectionId);
+            try {
+                this.disconnectEndpointConnection(socket.id, endpointConnectionId);
+            } catch (e) {
+                // we don't want to crash the program because of an error here, just log it
+                console.error(e);
+            }
         });
 
         //Tell the client we are ready to receive messages
@@ -143,6 +148,8 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
             await newEndpointConnection.endpoint.callConnect();
         } catch (e) {
             this.removeEndpointConnectionById(newEndpointConnection.endpointConnectionId);
+
+            throw e;
         }
 
         return newEndpointConnection;
@@ -166,7 +173,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
             return; // fail silently
         }
         if (endpointConnection.socketId !== socketId) {
-            console.error('Cannot disconnect endpoint, it doesn\'t belong to this socket');
+            throw new Error('Cannot disconnect endpoint, it doesn\'t belong to this socket');
         }
 
         endpointConnection.endpoint.callDisconnect().catch(console.error);
