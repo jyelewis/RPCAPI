@@ -162,10 +162,11 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
     disconnectEndpointConnection(socketId: string, endpointConnectionId: string) {
         const endpointConnection = this.getEndpointConnectionById(endpointConnectionId);
         if (!endpointConnection) {
-            throw new Error('Cannot disconnect endpoint, endpoint not found');
+            // cannot disconnect endpoint, endpoint not found
+            return; // fail silently
         }
         if (endpointConnection.socketId !== socketId) {
-            throw new Error('Cannot disconnect endpoint, it doesnt belong to this socket');
+            console.error('Cannot disconnect endpoint, it doesn\'t belong to this socket');
         }
 
         endpointConnection.endpoint.callDisconnect().catch(console.error);
