@@ -13,6 +13,10 @@ export class APIEndpoint {
 
     public accessKey: string = null;
 
+    public get isConnected(): boolean {
+        return this.connected;
+    }
+
     actionExists(actionName: string) {
         const actionFunc = (<any>this)['$' + actionName];
         return actionFunc !== undefined;
