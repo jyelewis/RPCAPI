@@ -106,5 +106,4 @@ export class APIClient extends EventEmitter {
             });
         });
     }
-
 }

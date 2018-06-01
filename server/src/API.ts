@@ -69,6 +69,11 @@ export class API {
                 console.error(err);
             });
 
+            app.get('/hc', (req: Request, res: Response) => {
+                res.status(200);
+                res.end('OK')
+            });
+
             this.server = new http.Server(app);
             const io = socketio(this.server);
 
