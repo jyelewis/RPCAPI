@@ -23,7 +23,8 @@ export class APIClient extends EventEmitter {
             throw new Error('Already connected to server');
         }
 
-        this.socket = io(this.serverAddress);
+        // its 2018, most of the market supports sockets + ajax requests can struggle behind load balancers
+        this.socket = io(this.serverAddress, {transports: ['websocket']});
 
         this.registerSocketEvents();
 
@@ -101,6 +102,7 @@ export class APIClient extends EventEmitter {
                     return;
                 }
                 const newAPIEndpointClient = new APIEndpointClient(this.socket, endpointConnectionId);
+                newAPIEndpointClient.timeout = this.timeout;
 
                 resolve(newAPIEndpointClient);
             });
