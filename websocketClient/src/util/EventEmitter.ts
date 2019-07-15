@@ -24,8 +24,7 @@ export class EventEmitter {
     emit(eventName: string, ...args: any[]) {
         if(typeof this.listeners[eventName] !== 'undefined') {
             this.listeners[eventName].forEach((handler) => {
-                //Take the chance here to abstractly give the main thread a chance to breath
-                nextTick(() => handler.apply(null, args));
+                handler.apply(null, args);
             });
         }
     }
@@ -35,8 +34,4 @@ export class EventEmitter {
         const listenersArr = this.listeners[eventName] || [];
         return listenersArr.length;
     }
-}
-
-function nextTick(cb: () => void) {
-    setTimeout(cb, 0);
 }
