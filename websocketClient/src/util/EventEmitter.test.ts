@@ -1,7 +1,7 @@
 import test from 'ava'
 import { EventEmitter } from "./EventEmitter";
 
-test('Emits and receives event', async t => {
+test('Emits and receives event', t => {
     return new Promise((resolve) => {
         const ee = new EventEmitter();
         ee.on('testEvent1', () => {
@@ -17,7 +17,7 @@ test('Emits and receives event', async t => {
     });
 });
 
-test('Passes arguments', async t => {
+test('Passes arguments', t => {
     return new Promise((resolve) => {
         const ee = new EventEmitter();
         ee.on('testEvent1', (a: number, b: string) => {
@@ -30,7 +30,7 @@ test('Passes arguments', async t => {
     });
 });
 
-test('Calls multiple listeners', async t => {
+test('Calls multiple listeners', t => {
     return new Promise((resolve) => {
         const ee = new EventEmitter();
 

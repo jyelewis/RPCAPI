@@ -69,7 +69,7 @@ test('Unregisters emitEvent listener on disconnect', async t => {
     t.is(mockEE.numListeners('emitEvent.epid'), 0);
 });
 
-test('Handles server sent events', async t => {
+test('Handles server sent events', t => {
     return new Promise(resolve => {
         const mockSocket = new EventEmitter();
 
@@ -84,7 +84,7 @@ test('Handles server sent events', async t => {
     });
 });
 
-test('Handles args from server sent events', async t => {
+test('Handles args from server sent events', t => {
     return new Promise(resolve => {
         const mockSocket = new EventEmitter();
 
@@ -102,7 +102,7 @@ test('Handles args from server sent events', async t => {
     });
 });
 
-test('Stops listening to server send events after off()', async t => {
+test('Stops listening to server send events after off()', t => {
     return new Promise(resolve => {
         t.plan(0);
 
@@ -123,7 +123,7 @@ test('Stops listening to server send events after off()', async t => {
     });
 });
 
-test('Emits disconnectEndpointConnection on disconnect', async t => {
+test('Emits disconnectEndpointConnection on disconnect', t => {
     return new Promise(resolve => {
         const mockEE = new EventEmitter();
 
