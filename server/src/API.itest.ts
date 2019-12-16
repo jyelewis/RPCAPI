@@ -28,7 +28,7 @@ test('Serves webapi requests from built in server', async t => {
     t.deepEqual(await response.json(), { error: null, result: { hello: 'world' } });
 });
 
-test('Serves websocket requests from built in server', async t => {
+test('Serves websocket requests from built in server', t => {
     return new Promise(resolve => {
         const socket = ioClient.connect('http://localhost:8258');
         socket.on('serverReady', () => {

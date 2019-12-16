@@ -2,6 +2,9 @@ import test from 'ava'
 
 import { API } from './API'
 import { APIEndpoint } from './APIEndpoint'
+import {Express} from "express";
+import * as SocketIO from "socket.io";
+import * as http from "http";
 
 test('Registers and returns endpoint', async t => {
     class TestEndpoint1 extends APIEndpoint {}
@@ -92,4 +95,17 @@ test('Validates endpoint name on register', async t => {
     t.throws(
         () => api.registerEndpoint('test&', TestEndpoint)
     );
+});
+
+test('Calls static configureServer on endpoint when setting up, if available', async t => {
+    class TestEndpoint extends APIEndpoint {
+        public static configureServer(app: Express, io: SocketIO.Server, server: http.Server) {
+            t.pass();
+        }
+    }
+
+    const api = new API();
+    api.registerEndpoint('test', TestEndpoint);
+
+    await api.listen(65432);
 });

@@ -77,6 +77,14 @@ export class API {
             this.server = new http.Server(app);
             const io = socketio(this.server);
 
+            // pass express "app" & socket io into each endpoint to allow custom configuration
+            for (const endpointName in this.endpoints) {
+                const endpointCls = this.endpoints[endpointName];
+                if (typeof (endpointCls as any).configureServer === "function") {
+                    (endpointCls as any).configureServer(app, io, this.server);
+                }
+            }
+
             //Setup access methods
             const webApi = new WebAPIAccessMethod(this, options.webApi);
             const socketApi = new WebSocketAccessMethod(this);

@@ -83,7 +83,7 @@ test('Throws if attempting to bind io while already bound', async t => {
     );
 });
 
-test('Websocket emits serverReady after connecting', async t => {
+test('Websocket emits serverReady after connecting',  t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -93,7 +93,7 @@ test('Websocket emits serverReady after connecting', async t => {
     });
 });
 
-test('Returns error when trying to connect to endpoint that doesnt exist', async t => {
+test('Returns error when trying to connect to endpoint that doesnt exist', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -107,7 +107,7 @@ test('Returns error when trying to connect to endpoint that doesnt exist', async
     });
 });
 
-test('Gets endpoint conenction ID when connected to endpoint', async t => {
+test('Gets endpoint conenction ID when connected to endpoint', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -122,7 +122,7 @@ test('Gets endpoint conenction ID when connected to endpoint', async t => {
     });
 });
 
-test('Calls action and gets return value', async t => {
+test('Calls action and gets return value', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -142,7 +142,7 @@ test('Calls action and gets return value', async t => {
     });
 });
 
-test('Sends NotFoundError if action doesnt exist', async t => {
+test('Sends NotFoundError if action doesnt exist', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -162,7 +162,7 @@ test('Sends NotFoundError if action doesnt exist', async t => {
     });
 });
 
-test('Sends InvalidTypeError if types are invalid', async t => {
+test('Sends InvalidTypeError if types are invalid', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -182,7 +182,7 @@ test('Sends InvalidTypeError if types are invalid', async t => {
     });
 });
 
-test('Sends Internal server error if action throws', async t => {
+test('Sends Internal server error if action throws', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -202,7 +202,7 @@ test('Sends Internal server error if action throws', async t => {
     });
 });
 
-test('Sends AccessDeniedError if action throws AccessDeniedError', async t => {
+test('Sends AccessDeniedError if action throws AccessDeniedError', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -222,7 +222,7 @@ test('Sends AccessDeniedError if action throws AccessDeniedError', async t => {
     });
 });
 
-test('Sends AccessDeniedError if endpoint connect throws AccessDeniedError', async t => {
+test('Sends AccessDeniedError if endpoint connect throws AccessDeniedError',  t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -237,7 +237,7 @@ test('Sends AccessDeniedError if endpoint connect throws AccessDeniedError', asy
     });
 });
 
-test('Calls disconenct() on the endpoint when client asks to disconnect endpoint', async t => {
+test('Calls disconenct() on the endpoint when client asks to disconnect endpoint', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
@@ -259,7 +259,7 @@ test('Calls disconenct() on the endpoint when client asks to disconnect endpoint
     });
 });
 
-test('Calls disconnect() on all endpoints when client socket conenction is lost', async t => {
+test('Calls disconnect() on all endpoints when client socket conenction is lost', t => {
     return new Promise(resolve => {
         const connection = ioClient('http://localhost:8056/');
         connection.on('serverReady', () => {
