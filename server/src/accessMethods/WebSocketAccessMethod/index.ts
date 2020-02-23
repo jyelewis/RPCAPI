@@ -76,6 +76,8 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                         cb(null, retVal);
                     })
                     .catch((e: Error) => {
+                        this.api.handleError(e);
+
                         if (e instanceof NotFoundError) {
                             debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: NotFound - ${e.message}`);
                             cb(e.message, null);
@@ -100,7 +102,6 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                             return;
                         }
 
-                        this.api.handleError(e);
                         debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: Unknown error - ${e.message}`);
                         cb('Internal server error', null);
                     });

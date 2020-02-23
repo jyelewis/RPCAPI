@@ -59,6 +59,8 @@ export class WebAPIAccessMethod {
                     debug(`Request: ${endpointName}/${actionName} %o: %o`, req.body, result);
                     res.end(this.formatResult(null, result));
                 }).catch((e) => {
+                    this.api.handleError(e);
+
                     if (e instanceof NotFoundError) {
                         debug(`Request: ${endpointName}/${actionName} %o: NotFound - ${e.message}`, req.body);
                         res
@@ -95,9 +97,6 @@ export class WebAPIAccessMethod {
                         .status(500)
                         .end(this.formatResult('Internal server error'));
 
-                    if (this.outputActionErrors) {
-                        console.error(e);
-                    }
                     debug(`Request: ${endpointName}/${actionName} %o: Unknown error - ${e.message}`, req.body);
                 });
         });
@@ -140,7 +139,9 @@ export class WebAPIAccessMethod {
 
         const epValue = await endpoint.callAction(actionName, typedParams);
 
-        endpoint.callDisconnect().catch(console.error); //Run disconnect in background, can return before this completes
+        endpoint.callDisconnect().catch(e => {
+            this.api.handleError(e);
+        }); //Run disconnect in background, can return before this completes
 
         return epValue;
     }
