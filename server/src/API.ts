@@ -23,6 +23,10 @@ export class API {
     public server: http.Server = null;
     public customCreateEndpointInstance: (epClass: any) => APIEndpoint = null;
 
+    public handleError: (error: Error) => void = (error: Error) => {
+        console.error(error);
+    };
+
     private endpoints: { [key: string]: any } = Object.create(null);
     public registerEndpoint(endpointName: string, endpointClass: any) {
         endpointName = endpointName.toLowerCase();
@@ -50,6 +54,10 @@ export class API {
         return null;
     }
 
+    public registerErrorHandler(errorHandler: (err: Error) => void) {
+        this.handleError = errorHandler;
+    }
+
     //Magic function to setup express and socket.io server
     //Convenient for any apps that have no need to manage express and socket.io themselves
     public listen(port: number, options: IAPIListenConfig = {}): Promise<void> {
@@ -66,6 +74,7 @@ export class API {
                 res.status(500);
                 res.end('{"error":"Internal server error","result":null}');
 
+                this.handleError(err);
                 console.error(err);
             });
 

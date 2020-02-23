@@ -54,12 +54,15 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                     cb(null, endpointConnection.endpointConnectionId);
 
                 }).catch(e => {
+                    this.api.handleError(e);
+
                     if (e instanceof AccessDeniedError) {
                         debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - failed, access denied`);
                         cb(`Access denied: ${e.message}`, null);
                         return;
                     }
 
+                    console.error(e);
                     debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - failed, %o`, e);
                     cb(`Unable to create endpoint connection, '${endpointName}' threw an error while setting up`, null);
                 });
@@ -98,6 +101,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                             return;
                         }
 
+                        this.api.handleError(e);
                         if (this.outputActionErrors) {
                             console.error(e);
                         }
@@ -118,6 +122,7 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                 this.disconnectEndpointConnection(socket.id, endpointConnectionId);
             } catch (e) {
                 // we don't want to crash the program because of an error here, just log it
+                this.api.handleError(e);
                 console.error(e);
             }
         });
