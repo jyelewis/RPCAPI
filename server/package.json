@@ -1,6 +1,6 @@
 {
   "name": "rpcapi",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "Provides a struture for hosting RPC style APIs, supports both http and websocket access out of the box",
   "repository": {
     "type": "git",

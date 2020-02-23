@@ -75,7 +75,6 @@ export class API {
                 res.end('{"error":"Internal server error","result":null}');
 
                 this.handleError(err);
-                console.error(err);
             });
 
             app.get('/hc', (req: Request, res: Response) => {

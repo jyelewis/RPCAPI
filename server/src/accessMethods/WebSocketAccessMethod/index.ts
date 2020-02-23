@@ -62,7 +62,6 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                         return;
                     }
 
-                    console.error(e);
                     debug(`socket id: '${socket.id}', connecting to endpoint '${endpointName}' - failed, %o`, e);
                     cb(`Unable to create endpoint connection, '${endpointName}' threw an error while setting up`, null);
                 });
@@ -102,9 +101,6 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
                         }
 
                         this.api.handleError(e);
-                        if (this.outputActionErrors) {
-                            console.error(e);
-                        }
                         debug(`epcid: '${endpointConnectionId}' called ${actionName}(%o): failed: Unknown error - ${e.message}`);
                         cb('Internal server error', null);
                     });
@@ -123,7 +119,6 @@ export class WebSocketAccessMethod extends EndpointConnectionIndex {
             } catch (e) {
                 // we don't want to crash the program because of an error here, just log it
                 this.api.handleError(e);
-                console.error(e);
             }
         });
 
